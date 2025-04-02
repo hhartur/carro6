@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garagem Inteligente - Manutenção</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Optional: Add a date picker library like Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body>
+    <h1>Garagem Inteligente - Sistema de Manutenção</h1>
+
+    <div class="container">
+        <!-- Section to Add Vehicles -->
+        <div class="form-section add-vehicle-section">
+            <h2>Adicionar Veículo</h2>
+            <form id="add-vehicle-form">
+                <label for="vehicle-type">Tipo:</label>
+                <select id="vehicle-type" required>
+                    <option value="Car">Carro</option>
+                    <option value="SportsCar">Carro Esportivo</option>
+                    <option value="Truck">Caminhão</option>
+                </select>
+
+                <label for="vehicle-make">Marca:</label>
+                <input type="text" id="vehicle-make" required>
+
+                <label for="vehicle-model">Modelo:</label>
+                <input type="text" id="vehicle-model" required>
+
+                <label for="vehicle-year">Ano:</label>
+                <input type="number" id="vehicle-year" required min="1900" max="2099">
+
+                <!-- Specific fields based on type (shown/hidden by JS) -->
+                <div id="truck-specific-fields" style="display: none;">
+                    <label for="truck-max-load">Carga Máxima (kg):</label>
+                    <input type="number" id="truck-max-load" min="0">
+                </div>
+
+                <button type="submit">Adicionar à Garagem</button>
+            </form>
+        </div>
+
+        <!-- Section to Display Garage -->
+        <div class="garage-section">
+            <h2>Veículos na Garagem</h2>
+            <div id="garage-display">
+                <!-- Vehicle cards will be added here by JS -->
+            </div>
+        </div>
+
+        <!-- Section for Selected Vehicle Details and Controls -->
+        <div class="details-section" id="selected-vehicle-details" style="display: none;">
+            <h2>Detalhes do Veículo Selecionado</h2>
+            <div id="vehicle-info"></div>
+            <div id="vehicle-controls">
+                <button id="btn-start">Ligar</button>
+                <button id="btn-stop">Desligar</button>
+                <button id="btn-accelerate">Acelerar</button>
+                <button id="btn-brake">Frear</button>
+                <!-- Specific Controls -->
+                <button id="btn-toggle-turbo" style="display: none;">Turbo</button>
+                <div id="truck-load-controls" style="display: none;">
+                    <input type="number" id="cargo-amount" placeholder="Qtd Carga" min="0">
+                    <button id="btn-load-cargo">Carregar</button>
+                    <button id="btn-unload-cargo">Descarregar</button>
+                </div>
+
+                <button id="btn-remove-vehicle" class="btn-danger">Remover Veículo</button>
+            </div>
+             <div class="vehicle-visual-status">
+                <span id="status-indicator">Status: Desligado</span>
+                <span id="speed-indicator">Velocidade: 0 km/h</span>
+                <span id="turbo-indicator" style="display: none;">Turbo: OFF</span>
+                <span id="load-indicator" style="display: none;">Carga: 0 kg</span>
+             </div>
+
+            <!-- Maintenance History -->
+            <div class="maintenance-history">
+                <h3>Histórico de Manutenção</h3>
+                <ul id="maintenance-history-list">
+                    <!-- History items will be added here -->
+                </ul>
+            </div>
+
+            <!-- Schedule Maintenance Form -->
+            <div class="form-section schedule-maintenance-section">
+                <h3>Agendar Nova Manutenção</h3>
+                <form id="schedule-maintenance-form">
+                     <input type="hidden" id="selected-vehicle-id">
+                     <label for="maint-date">Data:</label>
+                     <input type="datetime-local" id="maint-date" required>
+
+                     <label for="maint-type">Tipo de Serviço:</label>
+                     <input type="text" id="maint-type" required placeholder="Ex: Troca de óleo">
+
+                     <label for="maint-cost">Custo (R$):</label>
+                     <input type="number" id="maint-cost" required min="0" step="0.01">
+
+                     <label for="maint-desc">Descrição (Opcional):</label>
+                     <textarea id="maint-desc" rows="2"></textarea>
+
+                     <button type="submit">Agendar/Registrar</button>
+                </form>
+            </div>
+        </div>
+
+         <!-- Section for Future Appointments -->
+        <div class="future-appointments-section">
+            <h2>Agendamentos Futuros</h2>
+            <ul id="future-appointments-list">
+                <!-- Future appointments will be listed here -->
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Notification Area -->
+    <div id="notification-area"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> <!-- Optional: Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script> <!-- Optional: Flatpickr Portuguese locale -->
+    <script src="script.js"></script>
+</body>
+</html>

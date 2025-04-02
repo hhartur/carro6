@@ -1,0 +1,285 @@
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1, h2, h3 {
+    color: #555;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 15px;
+}
+
+.form-section,
+.garage-section,
+.details-section,
+.future-appointments-section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Forms */
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+form input[type="text"],
+form input[type="number"],
+form input[type="datetime-local"],
+form select,
+form textarea {
+    width: calc(100% - 22px); /* Adjust for padding/border */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+form button {
+    background-color: #5cb85c;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form button:hover {
+    background-color: #4cae4c;
+}
+
+/* Garage Display */
+#garage-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.vehicle-card {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 6px;
+    background-color: #e9ecef;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-align: center;
+    position: relative; /* For absolute positioning of status icon */
+}
+
+.vehicle-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.vehicle-card.selected {
+    border-color: #007bff;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+.vehicle-card h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.vehicle-card p {
+    font-size: 0.9em;
+    margin: 2px 0;
+    color: #555;
+}
+
+.status-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 1px solid #aaa;
+}
+.status-icon.on { background-color: #28a745; border-color: #1e7e34; } /* Green */
+.status-icon.off { background-color: #dc3545; border-color: #b02a37; } /* Red */
+.status-icon.moving { background-color: #ffc107; border-color: #d39e00; animation: pulse 1s infinite alternate;} /* Yellow pulsing */
+
+
+/* Selected Vehicle Details */
+#selected-vehicle-details {
+    background-color: #f8f9fa;
+}
+
+#vehicle-info {
+    margin-bottom: 20px;
+    font-size: 1.1em;
+}
+
+#vehicle-controls button {
+    margin: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    transition: background-color 0.2s, transform 0.1s;
+}
+#vehicle-controls button:hover {
+    background-color: #e0e0e0;
+}
+#vehicle-controls button:active {
+    transform: scale(0.95);
+}
+#vehicle-controls #btn-start { background-color: #d4edda; border-color: #c3e6cb;}
+#vehicle-controls #btn-stop { background-color: #f8d7da; border-color: #f5c6cb;}
+#vehicle-controls #btn-accelerate { background-color: #cce5ff; border-color: #b8daff;}
+#vehicle-controls #btn-brake { background-color: #fff3cd; border-color: #ffeeba;}
+#vehicle-controls #btn-toggle-turbo { background-color: #e2d9f3; border-color: #d6c8ee;}
+#vehicle-controls #btn-toggle-turbo.active { background-color: #ff00ff; color: white; }
+#truck-load-controls input { width: 80px; margin-right: 5px; padding: 5px; }
+#truck-load-controls button { margin-left: 5px; }
+
+
+.vehicle-visual-status span {
+    display: block;
+    margin-top: 5px;
+    font-style: italic;
+    color: #666;
+}
+
+/* Maintenance Lists */
+.maintenance-history ul,
+.future-appointments-section ul {
+    list-style: none;
+    padding: 0;
+    max-height: 200px; /* Limit height and make scrollable */
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.maintenance-history li,
+.future-appointments-section li {
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95em;
+}
+.maintenance-history li:last-child,
+.future-appointments-section li:last-child {
+    border-bottom: none;
+}
+.future-appointments-section li {
+    background-color: #eaf6ff; /* Light blue background for future appointments */
+}
+
+/* Animations */
+.vehicle-card.engine-start {
+    animation: shake 0.3s ease-in-out;
+}
+.vehicle-card.accelerating {
+    animation: move-forward 0.2s ease-out;
+}
+.vehicle-card.braking {
+    animation: move-backward 0.2s ease-out;
+}
+.vehicle-card.turbo-active {
+    box-shadow: 0 0 15px 5px rgba(255, 0, 255, 0.7); /* Magenta glow */
+}
+.vehicle-card.loading {
+     animation: tilt 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px) rotate(-1deg); }
+    75% { transform: translateX(2px) rotate(1deg); }
+}
+
+@keyframes move-forward {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(3px); }
+}
+
+@keyframes move-backward {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-3px); }
+}
+
+@keyframes tilt {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(2deg); }
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+
+/* Notifications */
+#notification-area {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.notification {
+    background-color: #333;
+    color: white;
+    padding: 10px 15px;
+    margin-top: 10px;
+    border-radius: 4px;
+    opacity: 0.9;
+    transition: opacity 0.5s ease-out;
+}
+
+.notification.error {
+    background-color: #dc3545;
+}
+
+.notification.success {
+    background-color: #28a745;
+}
+
+.notification.info {
+    background-color: #17a2b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr; /* Stack columns on smaller screens */
+    }
+    #garage-display {
+         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+
+/* Add this rule to your style.css */
+#vehicle-controls .btn-danger {
+    background-color: #dc3545; /* Red */
+    color: white;
+    border-color: #d32535;
+}
+
+#vehicle-controls .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
