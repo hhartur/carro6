@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
-    <!-- Se usar Flatpickr, descomente os links CSS -->
+    <!-- Flatpickr CSS (Uncomment if using) -->
     <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> -->
 </head>
 <body>
@@ -19,7 +19,7 @@
             <h1><span class="logo-icon">⚡</span> Smart Garage Nexus</h1>
             <nav class="main-nav" aria-label="Navegação principal">
                 <ul>
-                    <li><a href="#dashboard" class="nav-link" data-tab-target="dashboard">📊 Dashboard</a></li>
+                    <li><a href="#dashboard" class="nav-link active" data-tab-target="dashboard">📊 Dashboard</a></li>
                     <li><a href="#garage" class="nav-link" data-tab-target="garage">🚗 Garagem</a></li>
                     <li><a href="#stats" class="nav-link" data-tab-target="stats">📈 Estatísticas</a></li>
                 </ul>
@@ -32,18 +32,18 @@
     <main class="container tab-container">
 
         <!-- ===== Painel Dashboard ===== -->
-        <div id="tab-dashboard" class="tab-content" data-tab-content="dashboard">
-            <section class="card-section intro-section"> <h2>Bem-vindo!</h2> <p>Visão geral da sua garagem.</p> </section>
+        <div id="tab-dashboard" class="tab-content active-tab" data-tab-content="dashboard" style="display: block;">
+            <section class="card-section intro-section visible" style="transition-delay: 0s;"> <h2>Bem-vindo!</h2> <p>Visão geral da sua garagem inteligente.</p> </section>
             <div class="dashboard-grid">
-                <div class="stat-card"> <div class="stat-icon">🔢</div> <div class="stat-value" data-stat="totalVehicles">-</div> <div class="stat-label">Veículos Totais</div> </div>
-                <div class="stat-card"> <div class="stat-icon">🏎️</div> <div class="stat-value" data-stat="vehicleTypes">-</div> <div class="stat-label">Distribuição</div> <div class="stat-details" data-stat="typeDetails"></div> </div>
-                <div class="stat-card"> <div class="stat-icon">📅</div> <div class="stat-value" data-stat="nextAppointment">Nenhum</div> <div class="stat-label">Próximo Agendamento</div> <div class="stat-details" data-stat="appointmentDetails"></div> </div>
-                <div class="stat-card"> <div class="stat-icon">💰</div> <div class="stat-value" data-stat="totalMaintCostDash">R$ 0,00</div> <div class="stat-label">Custo Total Manutenção</div> </div>
+                <div class="stat-card visible" style="transition-delay: 0s;"> <div class="stat-icon">🔢</div> <div class="stat-value" data-stat="totalVehicles">-</div> <div class="stat-label">Veículos Totais</div> </div>
+                <div class="stat-card visible" style="transition-delay: 0.08s;"> <div class="stat-icon">🏎️</div> <div class="stat-value" data-stat="vehicleTypes">-</div> <div class="stat-label">Distribuição</div> <div class="stat-details" data-stat="typeDetails"></div> </div>
+                <div class="stat-card visible" style="transition-delay: 0.16s;"> <div class="stat-icon">📅</div> <div class="stat-value" data-stat="nextAppointment">Nenhum</div> <div class="stat-label">Próximo Agendamento</div> <div class="stat-details" data-stat="appointmentDetails"></div> </div>
+                <div class="stat-card visible" style="transition-delay: 0.24s;"> <div class="stat-icon">💰</div> <div class="stat-value" data-stat="totalMaintCostDash">R$ 0,00</div> <div class="stat-label">Custo Total Manutenção</div> </div>
            </div>
         </div>
 
         <!-- ===== Painel Garagem ===== -->
-        <div id="tab-garage" class="tab-content" data-tab-content="garage">
+        <div id="tab-garage" class="tab-content" data-tab-content="garage" style="display: none;">
             <div class="garage-layout">
                 <!-- Coluna Principal (Esquerda) -->
                 <div class="garage-column-main">
@@ -52,7 +52,8 @@
                         <form id="add-vehicle-form" autocomplete="off">
                              <div class="form-group"> <label for="vehicle-type">Tipo:</label> <select id="vehicle-type" required> <option value="" disabled selected>Selecione...</option> <option value="Car">Carro</option> <option value="SportsCar">Carro Esportivo</option> <option value="Truck">Caminhão</option> </select> </div>
                              <div class="form-row"> <div class="form-group"> <label for="vehicle-make">Marca:</label> <input type="text" id="vehicle-make" required placeholder="Ex: Toyota"> </div> <div class="form-group"> <label for="vehicle-model">Modelo:</label> <input type="text" id="vehicle-model" required placeholder="Ex: Corolla"> </div> </div>
-                             <div class="form-group"> <label for="vehicle-year">Ano:</label> <input type="number" id="vehicle-year" required min="1900" max="2099" placeholder="Ex: 2022"> </div>
+                             <div class="form-group"> <label for="vehicle-year">Ano:</label> <input type="number" id="vehicle-year" required min="1900" max="2099" placeholder="Ex: 2024"> </div>
+                             <!-- Truck Specific Fields -->
                              <div id="truck-specific-fields" class="specific-fields"> <hr class="field-separator"> <div class="form-group"> <label for="truck-max-load">Carga Máxima (kg):</label> <input type="number" id="truck-max-load" min="1" placeholder="Ex: 1000"> </div> <hr class="field-separator"> </div>
                              <button type="submit" class="btn btn-primary btn-submit">Adicionar à Garagem</button>
                         </form>
@@ -60,35 +61,42 @@
                     <section id="garage-list-section" class="card-section">
                         <h2><span class="section-icon">📋</span> Lista de Veículos</h2>
                         <div id="garage-display" class="garage-grid">
+                            <!-- Vehicle cards will be injected here by JS -->
                             <p class="placeholder-text">A garagem está vazia.</p>
                         </div>
                     </section>
                     <section id="future-appointments-garage" class="card-section">
                          <h2><span class="section-icon">🗓️</span> Agendamentos Futuros</h2>
                         <ul id="future-appointments-list" class="styled-list appointment-list">
-                            <li class="placeholder-text">Sem agendamentos.</li>
+                            <!-- Appointments will be injected here by JS -->
+                            <li class="placeholder-text">Sem agendamentos futuros.</li>
                         </ul>
                     </section>
                 </div>
 
                 <!-- Coluna Detalhes (Direita) - CONTAINER FIXO -->
                 <div class="garage-column-details">
+                    <!-- Content will be injected here by JS -->
                     <div id="details-content-area" class="card-section sticky-details details-container-fixed">
-
+                         <!-- Placeholder or Vehicle Details -->
+                         <div class="details-placeholder-content">
+                            <span class="placeholder-icon" aria-hidden="true">👈</span>
+                            <p>Selecione um veículo na lista para ver os detalhes.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- ===== Painel Estatísticas ===== -->
-        <div id="tab-stats" class="tab-content" data-tab-content="stats">
+        <div id="tab-stats" class="tab-content" data-tab-content="stats" style="display: none;">
              <section class="card-section">
                 <h2><span class="section-icon">📈</span> Estatísticas Detalhadas</h2>
                  <p class="section-subtitle">Análise de custos e distribuição da sua frota.</p>
                 <div class="stats-grid">
                      <div class="stat-card large-stat"> <div class="stat-label">Custo Total Manutenção</div> <div class="stat-value" data-stat="totalCost">R$ 0,00</div> </div>
                      <div class="stat-card large-stat"> <div class="stat-label">Custo Médio / Veículo</div> <div class="stat-value" data-stat="avgCost">R$ 0,00</div> </div>
-                     <div class="stat-card large-stat chart-card"> <div class="stat-label">Distribuição por Tipo</div> <div class="stat-value" data-stat="typeDistribution"> <div class="type-bar-chart"> <div class="bar-item" data-type="Car"><span class="bar-label">Car</span><div class="bar Car" style="height: 0%;"></div><span class="bar-count">0</span></div> <div class="bar-item" data-type="SportsCar"><span class="bar-label">Sports</span><div class="bar SportsCar" style="height: 0%;"></div><span class="bar-count">0</span></div> <div class="bar-item" data-type="Truck"><span class="bar-label">Truck</span><div class="bar Truck" style="height: 0%;"></div><span class="bar-count">0</span></div> </div> </div> </div>
+                     <div class="stat-card large-stat chart-card"> <div class="stat-label">Distribuição por Tipo</div> <div class="stat-value" data-stat="typeDistribution"> <div class="type-bar-chart"> <div class="bar-item" data-type="Car"><span class="bar-label">Carro</span><div class="bar Car" style="height: 0%;"></div><span class="bar-count">0</span></div> <div class="bar-item" data-type="SportsCar"><span class="bar-label">Esportivo</span><div class="bar SportsCar" style="height: 0%;"></div><span class="bar-count">0</span></div> <div class="bar-item" data-type="Truck"><span class="bar-label">Caminhão</span><div class="bar Truck" style="height: 0%;"></div><span class="bar-count">0</span></div> </div> </div> </div>
                      <div class="stat-card large-stat"> <div class="stat-label">Veículo Mais Caro (Manut.)</div> <div class="stat-value" data-stat="mostExpensiveVehicle">N/A</div> <div class="stat-details" data-stat="mostExpensiveCost"></div> </div>
                  </div>
             </section>
@@ -98,22 +106,39 @@
 
      <footer class="main-footer"> <p>© 2024 Smart Garage Nexus.</p> </footer>
 
+    <!-- ###################################################### -->
     <!-- Template para o *CONTEÚDO* dos Detalhes do Veículo -->
+    <!-- ###################################################### -->
     <template id="vehicle-details-template">
          <section class="vehicle-details-content-wrapper">
+            <!-- Close Button -->
             <button class="close-button" title="Fechar Detalhes" aria-label="Fechar Detalhes">×</button>
+
+            <!-- Title -->
             <h2 class="details-title">Detalhes do Veículo</h2>
+
+            <!-- Main Content Area -->
             <div class="details-content">
-                <div class="info-block vehicle-info"></div>
-                <div class="status-indicators vehicle-status-indicators">
-                    <span class="status-tag status-indicator"></span>
-                    <span class="status-tag speed-indicator"></span>
-                    <span class="status-tag turbo-indicator status-tag-turbo" style="display: none;"></span>
-                    <span class="status-tag load-indicator status-tag-load" style="display: none;"></span>
+
+                <!-- Vehicle Info (Basic) -->
+                <div class="info-block vehicle-info">
+                    <!-- Populated by JS -->
                 </div>
+
+                <!-- Status Indicators -->
+                <div class="status-indicators vehicle-status-indicators">
+                    <span class="status-tag status-indicator">Status: -</span>
+                    <span class="status-tag speed-indicator">Veloc: - km/h</span>
+                    <span class="status-tag turbo-indicator status-tag-turbo" style="display: none;">Turbo: -</span>
+                    <span class="status-tag load-indicator status-tag-load" style="display: none;">Carga: -/- kg</span>
+                </div>
+
+                <!-- Engine Visualizer (Optional) -->
                 <div class="engine-visualizer" style="display: none;">
                      <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div>
                 </div>
+
+                <!-- Vehicle Controls -->
                 <div class="button-group vehicle-controls">
                      <button class="btn btn-icon btn-success btn-start"><span class="btn-icon-symbol">▶️</span> <span>Ligar</span></button>
                      <button class="btn btn-icon btn-danger btn-stop"><span class="btn-icon-symbol">⏹️</span> <span>Desligar</span></button>
@@ -121,40 +146,93 @@
                      <button class="btn btn-icon btn-warning btn-brake"><span class="btn-icon-symbol">🛑</span> <span>Frear</span></button>
                      <button class="btn btn-icon btn-accent btn-toggle-turbo" style="display: none;"><span class="btn-icon-symbol">⚡</span> <span>Turbo</span></button>
                 </div>
+
+                 <!-- Truck Load Controls -->
                  <div class="input-group truck-load-controls" style="display: none;">
-                      <label for="cargo-amount-detail">Carga (kg):</label> <input type="number" class="cargo-amount" id="cargo-amount-detail" min="1" placeholder="Qtd"> <button class="btn btn-secondary btn-icon btn-load-cargo"><span class="btn-icon-symbol">➕</span> Carregar</button> <button class="btn btn-secondary btn-icon btn-unload-cargo"><span class="btn-icon-symbol">➖</span> Descarregar</button>
+                      <label for="cargo-amount-detail">Carga (kg):</label>
+                      <input type="number" class="cargo-amount" id="cargo-amount-detail" min="1" placeholder="Qtd">
+                      <button class="btn btn-secondary btn-icon btn-load-cargo"><span class="btn-icon-symbol">➕</span> Carregar</button>
+                      <button class="btn btn-secondary btn-icon btn-unload-cargo"><span class="btn-icon-symbol">➖</span> Descarregar</button>
                  </div>
-                <div class="maintenance-area">
-                    <div class="maintenance-section">
-                        <h3>Histórico</h3>
-                        <ul class="styled-list maintenance-list"></ul>
+
+                 <!-- ===== NEW: API Details Section ===== -->
+                 <div class="api-details-section">
+                    <button class="btn btn-secondary btn-fetch-api-details">
+                        <span class="btn-icon-symbol">🌐</span> <span>Ver Dados Externos</span>
+                    </button>
+                    <div class="api-details-content">
+                        <!-- API data will be loaded here by JS -->
+                        <p class="placeholder-text">Clique acima para buscar informações adicionais.</p>
                     </div>
+                 </div>
+                 <!-- ===== END: API Details Section ===== -->
+
+                <!-- Maintenance Area -->
+                <div class="maintenance-area">
+                    <!-- History Section -->
+                    <div class="maintenance-section">
+                        <h3>Histórico de Manutenção</h3>
+                        <ul class="styled-list maintenance-list">
+                            <!-- Populated by JS -->
+                            <li class="placeholder-text">Nenhum histórico registrado.</li>
+                        </ul>
+                    </div>
+                    <!-- Form Section -->
                     <div class="maintenance-section form-section">
-                         <h3>Agendar / Registrar</h3>
+                         <h3>Agendar / Registrar Manutenção</h3>
                          <form class="schedule-maintenance-form" autocomplete="off">
-                            <input type="hidden" class="selected-vehicle-id">
-                             <div class="form-group"> <label for="maint-date-detail">Data e Hora:</label> <input type="datetime-local" class="maint-date" id="maint-date-detail" required> </div>
-                             <div class="form-row"> <div class="form-group"> <label for="maint-type-detail">Tipo:</label> <input type="text" class="maint-type" id="maint-type-detail" required placeholder="Ex: Troca de óleo"> </div> <div class="form-group"> <label for="maint-cost-detail">Custo (R$):</label> <input type="number" class="maint-cost" id="maint-cost-detail" required min="0" step="0.01" value="0" placeholder="0.00"> </div> </div>
-                             <div class="form-group"> <label for="maint-desc-detail">Descrição (Opcional):</label> <textarea class="maint-desc" id="maint-desc-detail" rows="2" placeholder="Detalhes adicionais..."></textarea> </div>
+                            <input type="hidden" class="selected-vehicle-id"> <!-- Stores current vehicle ID -->
+                             <div class="form-group">
+                                <label for="maint-date-detail">Data e Hora:</label>
+                                <input type="datetime-local" class="maint-date" id="maint-date-detail" required>
+                             </div>
+                             <div class="form-row">
+                                <div class="form-group">
+                                    <label for="maint-type-detail">Tipo:</label>
+                                    <input type="text" class="maint-type" id="maint-type-detail" required placeholder="Ex: Troca de óleo">
+                                </div>
+                                <div class="form-group">
+                                    <label for="maint-cost-detail">Custo (R$):</label>
+                                    <input type="number" class="maint-cost" id="maint-cost-detail" required min="0" step="0.01" value="0" placeholder="0.00">
+                                </div>
+                             </div>
+                             <div class="form-group">
+                                <label for="maint-desc-detail">Descrição (Opcional):</label>
+                                <textarea class="maint-desc" id="maint-desc-detail" rows="2" placeholder="Detalhes adicionais..."></textarea>
+                             </div>
                              <button type="submit" class="btn btn-primary btn-submit">Adicionar Registro</button>
                          </form>
                     </div>
-                </div>
-                 <button class="btn btn-danger btn-remove-vehicle">Remover Veículo</button>
-             </div>
+                </div> <!-- End Maintenance Area -->
+
+                 <!-- Remove Vehicle Button -->
+                 <button class="btn btn-danger btn-remove-vehicle">Remover Veículo da Garagem</button>
+
+             </div> <!-- End Details Content -->
         </section>
      </template>
+    <!-- ###################################################### -->
+    <!-- End Template -->
+    <!-- ###################################################### -->
 
-    <!-- Scripts (Ordem Importante!) -->
+
+    <!-- Scripts (Order is Important!) -->
+    <!-- Flatpickr JS (Uncomment if using) -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> -->
-    <!-- <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script> -->
+    <!-- <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script> --> <!-- Portuguese locale for Flatpickr -->
+
+    <!-- Utility Functions -->
     <script src="js/utils.js"></script>
+
+    <!-- Class Definitions -->
     <script src="js/models/Maintenance.js"></script>
     <script src="js/models/Vehicle.js"></script>
     <script src="js/models/Car.js"></script>
     <script src="js/models/SportsCar.js"></script>
     <script src="js/models/Truck.js"></script>
     <script src="js/models/Garage.js"></script>
+
+    <!-- Main Application Logic -->
     <script src="js/main.js"></script>
 
 </body>

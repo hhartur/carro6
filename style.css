@@ -56,6 +56,98 @@
     --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
+/* === NEW: API Details Styling === */
+.api-details-section {
+    margin-top: 2rem; /* Add space above the API section */
+    padding-top: 1.5rem; /* Add space above the button */
+    border-top: 1px dashed var(--border-color); /* Separator line */
+}
+
+.api-details-content {
+    margin-top: 1rem; /* Space between button and content */
+    min-height: 80px; /* Ensure some space even when empty */
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 1.2rem;
+    background-color: rgba(var(--accent-2-rgb), 0.05); /* Subtle background */
+    transition: background-color var(--transition-fast);
+    font-size: 0.9em; /* Slightly smaller text */
+    line-height: 1.7;
+}
+
+.api-details-content .placeholder-text,
+.api-details-content .error-text {
+    text-align: center;
+    padding: 1rem 0;
+    font-style: italic;
+    opacity: 0.8;
+}
+.api-details-content .error-text {
+    color: var(--danger);
+    font-weight: bold;
+    font-style: normal;
+    opacity: 1;
+}
+
+
+/* Style the definition list for API data */
+.api-data-list {
+    padding: 0;
+    margin: 0;
+}
+
+.api-data-list dt { /* Term (Label) */
+    font-weight: 600;
+    color: var(--accent-2-light); /* Use an accent color */
+    margin-top: 0.8rem;
+    font-size: 0.95em;
+    float: left; /* Basic layout */
+    clear: left;
+    width: 55%; /* Adjust as needed */
+    margin-right: 5%; /* Space between label and value */
+    text-align: right;
+}
+.api-data-list dt::after {
+    content: ":";
+}
+
+
+.api-data-list dd { /* Definition (Value) */
+    margin-left: 60%; /* Align with dt */
+    margin-top: 0.8rem;
+    color: var(--text-primary);
+    word-wrap: break-word; /* Prevent long text overflow */
+}
+.api-data-list dd:first-of-type {
+     margin-top: 0; /* No top margin for the first item */
+}
+.api-data-list dt:first-of-type {
+     margin-top: 0;
+}
+
+
+/* Clearfix for the dl */
+.api-data-list::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+
+/* Style for recall warning */
+.api-data-list dd:has(> .recall-warning), /* Not fully supported everywhere, but nice */
+.api-data-list dd.recall-warning { /* Fallback class if needed */
+    color: var(--warning);
+    font-weight: bold;
+}
+
+/* Adjust button when loading */
+.btn-fetch-api-details:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+
 /* --- Reset & Base Styling --- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; font-size: 16px; }
