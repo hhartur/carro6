@@ -23,9 +23,9 @@ export default function handler(req, res) {
         }
         return res.json({
           temp: weatherData.main.temp,
-          description: weatherData.weather[0].description,
+          description: weatherData.weather.description,
           feelsLike: weatherData.main.feels_like,
-          icon: weatherData.weather[0].icon,
+          icon: weatherData.weather.icon,
           cityFound: weatherData.name
         });
       } catch (err) {
