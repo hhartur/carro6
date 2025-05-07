@@ -11,6 +11,7 @@ export default function handler(req, res) {
     response.on("end", () => {
       try {
         const weatherData = JSON.parse(data);
+        console.log(weatherData)
         if (response.statusCode !== 200) {
           return res.status(response.statusCode).json({ error: weatherData.message || "Erro" });
         }
