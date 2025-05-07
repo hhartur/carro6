@@ -714,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const vehicleType = selectedVehicle._type || 'Vehicle';
             const consumptionRate = VEHICLE_CONSUMPTION_RATES[vehicleType] || VEHICLE_CONSUMPTION_RATES['Vehicle'];
             //const fuelNeededLiters = distanceKm / consumptionRate;
-            const estimatedCost = fuelNeededLiters * FUEL_PRICE_PER_LITER;
+            //const estimatedCost = fuelNeededLiters * FUEL_PRICE_PER_LITER;
 
             // 4. Determine weather status for notification/styling
             let weatherClass = 'weather-moderate';
