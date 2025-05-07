@@ -2,8 +2,13 @@ const https = require("https");
 
 export default function handler(req, res) {
   const { city } = req.query;
+  const apiKey = process.env.API_KEY
 
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=2868f6366988cc5b344d939c4e89ae96&units=metric&lang=pt_br`;
+  if (!apiKey){
+    return res.status(401).response("Api key not defined")
+  }
+
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=pt_br`;
 
   https.get(url, (response) => {
     let data = "";
