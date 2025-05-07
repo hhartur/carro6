@@ -206,7 +206,7 @@ async function fetchWeatherForDestination(cityName) {
  * @param {string} destinationCity - The name of the destination city.
  * @returns {Promise<object|{error: boolean, message: string}>} Distance data or error object.
  */
-async function fetchDistanceBetweenCities(originCity, destinationCity) {
+async function fetchDistanceBetweenCities(originCity, destinationCity) {/*
     const backendUrl = `https://carro6222.vercel.app/api/distance/${encodeURIComponent(originCity)}/${encodeURIComponent(destinationCity)}`;
     console.log(`[API Distância] Requesting distance between "${originCity}" and "${destinationCity}" from: ${backendUrl}`);
 
@@ -228,7 +228,7 @@ async function fetchDistanceBetweenCities(originCity, destinationCity) {
     } catch (error) {
         console.error(`[API Distância] Falha ao buscar distância:`, error);
         return { error: true, message: error.message || `Não foi possível obter a distância.` };
-    }
+    }*/
 }
 
 // --- END OF FILE utils.js ---
