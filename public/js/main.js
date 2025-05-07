@@ -732,7 +732,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <ul class="trip-results-list">
                     <li><strong>Origem:</strong> ${originCity}</li>
                     <li><strong>Destino:</strong> ${weatherData.cityFound || destinationCity}</li>
-                    <li><strong>Custo Estimado Combustível:</strong> ${estimatedCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</li>
                     <li>
                         <strong>Clima no Destino:</strong>
                         <span class="${weatherClass}">
