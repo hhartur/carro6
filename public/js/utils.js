@@ -175,7 +175,6 @@ async function buscarDetalhesVeiculoAPI(identificadorVeiculo) {
  * @returns {Promise<object|{error: boolean, message: string}>} Weather data or error object.
  */
 async function fetchWeatherForDestination(cityName) {
-    const a = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cityName)}&appid=2868f6366988cc5b344d939c4e89ae96`
     const backendUrl = `https://carro6222.vercel.app/api/weather?q=${encodeURIComponent(cityName)}`;
     console.log(`[API Clima] Requesting weather for "${cityName}" from: ${backendUrl}`);
 
