@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addListener('.schedule-maintenance-form', 'submit', handleScheduleMaintenance);
         addListener('.btn-remove-vehicle', 'click', handleRemoveVehicle);
         addListener('.btn-fetch-api-details', 'click', handleFetchApiDetails);
-        //addListener('.trip-form', 'submit', handleCalculateRouteAndWeather); // **** NEW LISTENER ****
+        addListener('.trip-form', 'submit', handleCalculateRouteAndWeather); // **** NEW LISTENER ****
     }
     function populateDetailsPanelContent(wrapper, vehicle) {
         if (!wrapper || !vehicle) return;
