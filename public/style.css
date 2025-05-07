@@ -46,6 +46,12 @@
     --success: #22c55e; --success-rgb: 34, 197, 94; --glow-success: rgba(var(--success-rgb), 0.4);
     --danger: #ef4444;  --danger-rgb: 239, 68, 68; --glow-danger: rgba(var(--danger-rgb), 0.4);
     --warning: #eab308; --warning-rgb: 234, 179, 8; --glow-warning: rgba(var(--warning-rgb), 0.4); --warning-text: #332701;
+    --info: var(--accent-1); /* Para notificações de informação geral */
+
+    /* Novas cores para clima */
+    --weather-cold: #56a3d8; /* Azul mais claro para frio */
+    --weather-hot: #f08c43;  /* Laranja para quente */
+
 
     /* Outros */
     --shadow-color: rgba(0, 0, 0, 0.5);
@@ -56,25 +62,23 @@
     --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
-/* === NEW: API Details Styling === */
+/* === API Details Styling (Veículos) === */
 .api-details-section {
-    margin-top: 2rem; /* Add space above the API section */
-    padding-top: 1.5rem; /* Add space above the button */
-    border-top: 1px dashed var(--border-color); /* Separator line */
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--border-color);
 }
-
 .api-details-content {
-    margin-top: 1rem; /* Space between button and content */
-    min-height: 80px; /* Ensure some space even when empty */
+    margin-top: 1rem;
+    min-height: 80px;
     border: 1px dashed var(--border-color);
     border-radius: var(--radius-sm);
     padding: 1.2rem;
-    background-color: rgba(var(--accent-2-rgb), 0.05); /* Subtle background */
+    background-color: rgba(var(--accent-2-rgb), 0.05);
     transition: background-color var(--transition-fast);
-    font-size: 0.9em; /* Slightly smaller text */
+    font-size: 0.9em;
     line-height: 1.7;
 }
-
 .api-details-content .placeholder-text,
 .api-details-content .error-text {
     text-align: center;
@@ -88,64 +92,140 @@
     font-style: normal;
     opacity: 1;
 }
+.api-data-list { padding: 0; margin: 0; }
+.api-data-list dt { font-weight: 600; color: var(--accent-2-light); margin-top: 0.8rem; font-size: 0.95em; float: left; clear: left; width: 55%; margin-right: 5%; text-align: right; }
+.api-data-list dt::after { content: ":"; }
+.api-data-list dd { margin-left: 60%; margin-top: 0.8rem; color: var(--text-primary); word-wrap: break-word; }
+.api-data-list dd:first-of-type, .api-data-list dt:first-of-type { margin-top: 0; }
+.api-data-list::after { content: ""; display: table; clear: both; }
+.api-data-list dd:has(> .recall-warning), .api-data-list dd.recall-warning { color: var(--warning); font-weight: bold; }
+.btn-fetch-api-details:disabled { cursor: wait; opacity: 0.6; }
 
 
-/* Style the definition list for API data */
-.api-data-list {
-    padding: 0;
-    margin: 0;
+/* === [NOVO] Planejador de Viagem Styling === */
+.trip-planner-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--border-color);
+}
+.trip-planner-section h3 { /* Estilo para o título da seção de viagem */
+    font-family: var(--font-display);
+    color: var(--accent-2); /* Usar um accent diferente */
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    font-weight: 400;
+    font-size: 1.3rem; /* Um pouco menor que o título principal do card */
+    border-bottom: 1px solid var(--border-color);
 }
 
-.api-data-list dt { /* Term (Label) */
-    font-weight: 600;
-    color: var(--accent-2-light); /* Use an accent color */
-    margin-top: 0.8rem;
-    font-size: 0.95em;
-    float: left; /* Basic layout */
-    clear: left;
-    width: 55%; /* Adjust as needed */
-    margin-right: 5%; /* Space between label and value */
-    text-align: right;
-}
-.api-data-list dt::after {
-    content: ":";
+.trip-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Espaço entre os inputs e o botão */
 }
 
+.trip-form .form-group {
+    margin-bottom: 0; /* Remover margem inferior padrão do form-group aqui */
+}
 
-.api-data-list dd { /* Definition (Value) */
-    margin-left: 60%; /* Align with dt */
-    margin-top: 0.8rem;
+.trip-form input[type="text"] { /* Estilo específico para inputs de texto da viagem */
+    width: 100%;
+    padding: 0.8rem 1rem; /* Padding um pouco menor */
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
     color: var(--text-primary);
-    word-wrap: break-word; /* Prevent long text overflow */
+    font-size: 0.95rem;
 }
-.api-data-list dd:first-of-type {
-     margin-top: 0; /* No top margin for the first item */
+.trip-form input[type="text"]::placeholder {
+    color: var(--text-muted);
 }
-.api-data-list dt:first-of-type {
-     margin-top: 0;
-}
-
-
-/* Clearfix for the dl */
-.api-data-list::after {
-    content: "";
-    display: table;
-    clear: both;
+.trip-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent-2); /* Usar accent-2 para foco */
+    background-color: var(--bg-secondary);
+    box-shadow: 0 0 10px var(--glow-2);
 }
 
-
-/* Style for recall warning */
-.api-data-list dd:has(> .recall-warning), /* Not fully supported everywhere, but nice */
-.api-data-list dd.recall-warning { /* Fallback class if needed */
-    color: var(--warning);
-    font-weight: bold;
+.btn-calculate-trip { /* Estilo para o botão de calcular viagem */
+    margin-top: 0.5rem; /* Espaço acima do botão */
+    background-color: var(--accent-2);
+    color: var(--text-inverted);
+    border-color: transparent;
+    box-shadow: 0 4px 15px var(--glow-2);
 }
-
-/* Adjust button when loading */
-.btn-fetch-api-details:disabled {
+.btn-calculate-trip:hover:not(:disabled) {
+    background-color: var(--accent-2-light);
+    box-shadow: 0 6px 20px var(--glow-2);
+}
+.btn-calculate-trip:disabled {
     cursor: wait;
     opacity: 0.6;
 }
+.btn-calculate-trip .spinner { /* Spinner dentro do botão de viagem */
+    display: none;
+    width: 1em;
+    height: 1em;
+    border: 2px solid rgba(var(--text-inverted-rgb, 12, 15, 26), 0.3); /* Usar cor invertida para contraste */
+    border-radius: 50%;
+    border-top-color: var(--text-inverted);
+    animation: spin 1s linear infinite;
+}
+
+
+.trip-results {
+    margin-top: 1.5rem;
+    padding: 1.2rem;
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-sm);
+    background-color: rgba(var(--accent-1-rgb), 0.05); /* Fundo sutil com accent-1 */
+    font-size: 0.9em;
+    line-height: 1.7;
+    min-height: 100px; /* Altura mínima para quando estiver carregando ou vazio */
+}
+.trip-results .placeholder-text,
+.trip-results .error-text {
+    text-align: center;
+    padding: 1rem 0;
+    font-style: italic;
+    opacity: 0.8;
+}
+.trip-results .error-text {
+    color: var(--danger);
+    font-weight: bold;
+    font-style: normal;
+}
+.trip-results-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.trip-results-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(var(--border-color-rgb, 58, 68, 96), 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.trip-results-list li:last-child {
+    border-bottom: none;
+}
+.trip-results-list strong {
+    color: var(--accent-1-light);
+    margin-right: 0.5em;
+}
+.trip-results-list .weather-icon {
+    width: 32px; /* Ajuste o tamanho conforme necessário */
+    height: 32px;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+.trip-results-list .weather-description {
+    text-transform: capitalize;
+}
+.trip-results-list .weather-cold { color: var(--weather-cold); font-weight: bold; }
+.trip-results-list .weather-moderate { color: var(--text-primary); } /* Cor padrão para moderado */
+.trip-results-list .weather-hot { color: var(--weather-hot); font-weight: bold; }
 
 
 /* --- Reset & Base Styling --- */
@@ -191,7 +271,7 @@ a:hover { color: var(--text-link-hover); }
 .card-section h2, .card-section h3 { font-family: var(--font-display); color: var(--accent-1-light); margin-bottom: 1.8rem; padding-bottom: 0.8rem; font-weight: 400; font-size: clamp(1.4rem, 5vw, 1.7rem); display: flex; align-items: center; gap: 0.8rem; border-bottom: 1px solid var(--border-color); position: relative; }
 .card-section h2::after, .card-section h3::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 0; height: 3px; background: linear-gradient(90deg, var(--accent-2), var(--accent-1)); border-radius: 1px; transition: width var(--transition-smooth) 0.2s; }
 .card-section.visible h2::after, .card-section.visible h3::after { width: 70px; }
-.card-section h3 { font-size: 1.3rem; margin-bottom: 1.3rem; color: var(--accent-2); }
+/* .card-section h3 { font-size: 1.3rem; margin-bottom: 1.3rem; color: var(--accent-2); } */ /* Comentado para permitir estilo específico do trip-planner h3 */
 .section-icon { color: var(--accent-1); font-size: 1.3em; }
 .section-subtitle { color: var(--text-secondary); margin-top: -1.2rem; margin-bottom: 1.5rem; font-size: 0.95rem; }
 .placeholder-text { color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0; opacity: 0.8; }
@@ -215,25 +295,25 @@ a:hover { color: var(--text-link-hover); }
 /* --- Botões --- */
 .btn { padding: 0.9rem 1.8rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; transition: all var(--transition-smooth); position: relative; overflow: hidden; background-color: var(--bg-tertiary); color: var(--text-primary); box-shadow: 0 4px 10px var(--shadow-light); display: inline-flex; align-items: center; justify-content: center; gap: 0.6em; vertical-align: middle; }
 .btn::before { content: ""; position: absolute; top: 0; left: -75%; z-index: 1; display: block; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,.3) 100%); transform: skewX(-25deg); transition: left var(--transition-smooth); pointer-events: none; }
-.btn:hover { transform: translateY(-3px); border-color: var(--text-secondary); box-shadow: 0 7px 18px var(--shadow-color); }
-.btn:hover::before { left: 125%; }
-.btn:active { transform: translateY(0px) scale(0.98); box-shadow: 0 3px 8px var(--shadow-light); }
+.btn:hover:not(:disabled) { transform: translateY(-3px); border-color: var(--text-secondary); box-shadow: 0 7px 18px var(--shadow-color); }
+.btn:hover:not(:disabled)::before { left: 125%; }
+.btn:active:not(:disabled) { transform: translateY(0px) scale(0.98); box-shadow: 0 3px 8px var(--shadow-light); }
 .btn:disabled { background-color: var(--bg-tertiary) !important; color: var(--text-muted) !important; cursor: not-allowed; transform: none; box-shadow: none; border-color: var(--border-color) !important; opacity: 0.5; }
 .btn:disabled::before { display: none; }
 .btn-icon-symbol { font-size: 1.2em; line-height: 1; }
 .btn-primary { background: var(--accent-1); color: var(--text-inverted); border-color: transparent; box-shadow: 0 4px 15px var(--glow-1); }
-.btn-primary:hover { background: var(--accent-1-light); box-shadow: 0 6px 20px var(--glow-1); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-1-light); box-shadow: 0 6px 20px var(--glow-1); }
 .btn-danger { background: var(--danger); color: #fff; border-color: transparent; box-shadow: 0 4px 15px var(--glow-danger); }
-.btn-danger:hover { background: var(--danger-light); box-shadow: 0 6px 20px var(--glow-danger); }
+.btn-danger:hover:not(:disabled) { background: var(--danger-light); box-shadow: 0 6px 20px var(--glow-danger); }
 .btn-success { background: var(--success); color: #fff; border-color: transparent; box-shadow: 0 4px 15px var(--glow-success); }
-.btn-success:hover { background: var(--success-light); box-shadow: 0 6px 20px var(--glow-success); }
+.btn-success:hover:not(:disabled) { background: var(--success-light); box-shadow: 0 6px 20px var(--glow-success); }
 .btn-warning { background: var(--warning); color: var(--warning-text); border-color: transparent; box-shadow: 0 4px 15px var(--glow-warning); }
-.btn-warning:hover { background: var(--warning-light); box-shadow: 0 6px 20px var(--glow-warning); }
+.btn-warning:hover:not(:disabled) { background: var(--warning-light); box-shadow: 0 6px 20px var(--glow-warning); }
 .btn-accent { background: var(--accent-3); color: var(--text-inverted); border-color: transparent; box-shadow: 0 4px 15px var(--glow-3); }
-.btn-accent:hover { background: var(--accent-3-light); box-shadow: 0 6px 20px var(--glow-3); }
+.btn-accent:hover:not(:disabled) { background: var(--accent-3-light); box-shadow: 0 6px 20px var(--glow-3); }
 .btn-accent.active { background: var(--danger); border-color: var(--danger); }
 .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-color);}
-.btn-secondary:hover { background: var(--border-color); color: var(--text-primary); }
+.btn-secondary:hover:not(:disabled) { background: var(--border-color); color: var(--text-primary); }
 .btn-submit { width: 100%; margin-top: 1.5rem; padding: 1rem; font-size: 1rem; }
 .btn-remove-vehicle { width: 100%; margin-top: 1.5rem; }
 .button-group { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
@@ -241,6 +321,22 @@ a:hover { color: var(--text-link-hover); }
 .input-group label { margin: 0; color: var(--text-secondary); font-size: 0.9em; white-space: nowrap;}
 .input-group input { flex-grow: 1; min-width: 70px; max-width: 100px; margin: 0; padding: 0.6rem; background-color: var(--bg-secondary); text-align: center; }
 .input-group .btn { padding: 0.6rem 1rem; font-size: 0.85em; margin: 0; flex-shrink: 0; }
+
+/* Spinner geral para botões (se não for específico do botão de viagem) */
+.btn .spinner {
+    display: none; /* Escondido por padrão */
+    width: 1em;
+    height: 1em;
+    border: 2px solid rgba(var(--text-primary-rgb, 221, 228, 240), 0.3); /* Cor primária do texto com opacidade */
+    border-radius: 50%;
+    border-top-color: var(--text-primary); /* Cor primária do texto */
+    animation: spin 1s linear infinite;
+}
+.btn-primary .spinner, .btn-accent .spinner { /* Spinner para botões com texto invertido */
+    border: 2px solid rgba(var(--text-inverted-rgb, 12, 15, 26), 0.3);
+    border-top-color: var(--text-inverted);
+}
+
 
 /* --- Garagem & Cards --- */
 .garage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; }
@@ -265,26 +361,10 @@ a:hover { color: var(--text-link-hover); }
 .vehicle-card.pulse-load { --pulse-rgb: var(--accent-2-rgb); animation: pulseBorderColor 1.5s infinite alternate; }
 
 /* --- Detalhes do Veículo (Coluna Direita Fixa) --- */
-#details-content-area {
-    /* Herda .card-section, mas está sempre visível e sem animação de entrada */
-    opacity: 1;
-    transform: none;
-    transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
-    min-height: 300px; /* Garante altura mínima */
-    border-left: 6px solid var(--accent-1);
-}
-
-/* Placeholder DENTRO da área de conteúdo */
-.details-placeholder-content {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 3rem 1rem; color: var(--text-muted); min-height: 200px;
-}
+#details-content-area { opacity: 1; transform: none; transition: background-color var(--transition-smooth), border-color var(--transition-smooth); min-height: 300px; border-left: 6px solid var(--accent-1); }
+.details-placeholder-content { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 3rem 1rem; color: var(--text-muted); min-height: 200px; }
 .details-placeholder-content .placeholder-icon { font-size: 2rem; display: block; margin-bottom: 1rem; animation: pointLeftRight 1.5s infinite ease-in-out; }
-
-/* Conteúdo real do veículo (wrapper clonado) - SEM FADE IN */
 .vehicle-details-content-wrapper { position: relative; }
-
-/* Estilos internos do painel de detalhes */
 .vehicle-details-content-wrapper .close-button { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 50%; width: 35px; height: 35px; color: var(--text-secondary); cursor: pointer; transition: all var(--transition-fast); z-index: 5; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; line-height: 1; }
 .vehicle-details-content-wrapper .close-button:hover { background: var(--danger); color: #fff; transform: scale(1.1) rotate(90deg); border-color: transparent; }
 .vehicle-details-content-wrapper .details-title { font-family: var(--font-display); color: var(--accent-1-light); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); font-size: 1.6rem; }
@@ -330,18 +410,21 @@ a:hover { color: var(--text-link-hover); }
 .bar { width: 70%; border-radius: 4px 4px 0 0; height: 0%; transition: height 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s; position: relative; box-shadow: inset 0 -3px 6px rgba(0,0,0,0.3); }
 .bar::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.1); border-radius: 4px 4px 0 0; }
 .bar.Car { background: linear-gradient(to top, var(--accent-1-dark), var(--accent-1-light)); box-shadow: 0 0 10px var(--glow-1), inset 0 -3px 6px rgba(0,0,0,0.3); }
-.bar.SportsCar { background: linear-gradient(to top, var(--accent-3), var(--accent-3-light)); box-shadow: 0 0 10px var(--glow-3), inset 0 -3px 6px rgba(0,0,0,0.3); } /* Use base accent 3 */
-.bar.Truck { background: linear-gradient(to top, var(--accent-2), var(--accent-2-light)); box-shadow: 0 0 10px var(--glow-2), inset 0 -3px 6px rgba(0,0,0,0.3); } /* Use base accent 2 */
+.bar.SportsCar { background: linear-gradient(to top, var(--accent-3), var(--accent-3-light)); box-shadow: 0 0 10px var(--glow-3), inset 0 -3px 6px rgba(0,0,0,0.3); }
+.bar.Truck { background: linear-gradient(to top, var(--accent-2), var(--accent-2-light)); box-shadow: 0 0 10px var(--glow-2), inset 0 -3px 6px rgba(0,0,0,0.3); }
 
 /* --- Notificações --- */
 #notification-area { position: fixed; bottom: 25px; right: 25px; z-index: 1001; width: 380px; max-width: 95%; pointer-events: none; }
-.notification { background: var(--bg-secondary); /* Use bg-secondary for better contrast */ backdrop-filter: none; /* Removed blur */ color: var(--text-primary); padding: 1.2rem 1.8rem; margin-top: 1rem; border-radius: var(--radius-md); box-shadow: 0 6px 20px var(--shadow-color); position: relative; border-left: 5px solid var(--accent-1); opacity: 0; transform: translateX(100%); transition: opacity 0.4s ease-out, transform 0.4s ease-out; display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
+.notification { background: var(--bg-secondary); color: var(--text-primary); padding: 1.2rem 1.8rem; margin-top: 1rem; border-radius: var(--radius-md); box-shadow: 0 6px 20px var(--shadow-color); position: relative; border-left: 5px solid var(--accent-1); opacity: 0; transform: translateX(100%); transition: opacity 0.4s ease-out, transform 0.4s ease-out; display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
 .notification.animate-in { opacity: 1; transform: translateX(0); }
 .notification.animate-out { opacity: 0; transform: translateX(100%); }
 .notification.success { border-left-color: var(--success); background: var(--success); color: #fff; }
 .notification.error { border-left-color: var(--danger); background: var(--danger); color: #fff; }
 .notification.warning { border-left-color: var(--warning); background: var(--warning); color: var(--warning-text); }
-.notification.info { border-left-color: var(--accent-2); }
+.notification.info { border-left-color: var(--info); } /* Usa a cor de acento padrão para info */
+.notification.cold { border-left-color: var(--weather-cold); background-color: #1c3b50; color: var(--text-primary); } /* Fundo mais escuro para 'cold' */
+.notification.hot { border-left-color: var(--weather-hot); background-color: #58391f; color: var(--text-primary); } /* Fundo mais escuro para 'hot' */
+
 .notification span { flex-grow: 1; margin-right: 10px; }
 .notification .close-btn { background:none; border:none; color:inherit; font-size:1.5em; cursor:pointer; opacity:0.7; padding:0 5px; line-height:1; margin-left: auto; flex-shrink: 0; transition: opacity var(--transition-fast); }
 .notification .close-btn:hover { opacity: 1; }
@@ -365,6 +448,7 @@ a:hover { color: var(--text-link-hover); }
 @keyframes tilt-backward { 0% { transform: perspective(800px) rotateY(0deg) scale(1); } 50% { transform: perspective(800px) rotateY(3deg) translateX(-2px) scale(1); } 100% { transform: perspective(800px) rotateY(0deg) scale(1); } }
 @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0) scale(1); } 40% { transform: translateY(-10px) scale(1); } 60% { transform: translateY(-5px) scale(1); } }
 @keyframes pointLeftRight { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-10px); } }
+@keyframes spin { to { transform: rotate(360deg); } } /* Animação do spinner */
 
 /* --- Responsividade --- */
 @media (max-width: 1200px) { .container { padding: 0 1.5rem; } }
@@ -373,4 +457,4 @@ a:hover { color: var(--text-link-hover); }
 @media (max-width: 480px) { html { font-size: 14px; } .container { margin: 1.5rem auto; padding: 0 0.8rem; } .card-section { padding: 1.2rem; } .main-header h1 { font-size: 1.4rem; } .main-nav .nav-link { padding: 0.5rem 0.8rem; font-size: 0.85em; } .btn { padding: 0.8rem 1.2rem; font-size: 0.85rem; } .garage-grid { grid-template-columns: 1fr; gap: 1rem; } .button-group, .input-group { flex-direction: column; align-items: stretch; } .input-group input { width: 100%; max-width: none; } .btn-submit, .btn-remove-vehicle { width: 100%; } .vehicle-details-content-wrapper .close-button { top: 10px; right: 10px; width: 30px; height: 30px; font-size: 1.3rem;} .maintenance-area { grid-template-columns: 1fr; gap: 1.5rem; } .stats-grid { grid-template-columns: 1fr; } .type-bar-chart { height: 90px; } .main-footer { font-size: 0.85rem; padding: 1rem; text-align: center; } }
 
 /* --- Error Text Style --- */
-.error-text { color: var(--danger); font-weight: bold; text-align: center; padding: 2rem; background-color: rgba(var(--danger-rgb), 0.1); border: 1px dashed var(--danger); border-radius: var(--radius-sm); }
+.error-text { color: var(--danger); font-weight: bold; text-align: center; padding: 1rem; background-color: rgba(var(--danger-rgb), 0.1); border: 1px dashed var(--danger); border-radius: var(--radius-sm); }

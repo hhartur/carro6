@@ -1,0 +1,37 @@
+[
+  {
+    "identificador": "Toyota-Corolla",
+    "valorFipeEstimado": 85000,
+    "recallPendente": false,
+    "ultimaRevisaoRecomendadaKm": 60000,
+    "dicaManutencao": "Verificar o nível do óleo do motor regularmente e calibrar pneus."
+  },
+  {
+    "identificador": "Ford-Mustang",
+    "valorFipeEstimado": 350000,
+    "recallPendente": true,
+    "ultimaRevisaoRecomendadaKm": 40000,
+    "dicaManutencao": "Utilizar apenas gasolina premium para melhor performance e checar freios."
+  },
+  {
+    "identificador": "Scania-R450",
+    "valorFipeEstimado": 550000,
+    "recallPendente": false,
+    "ultimaRevisaoRecomendadaKm": 100000,
+    "dicaManutencao": "Verificar a pressão dos pneus semanalmente, especialmente sob carga, e lubrificar componentes."
+  },
+  {
+    "identificador": "Chevrolet-Onix",
+    "valorFipeEstimado": 68000,
+    "recallPendente": false,
+    "ultimaRevisaoRecomendadaKm": 50000,
+    "dicaManutencao": "Realizar alinhamento e balanceamento a cada 10.000 km."
+  },
+  {
+    "identificador": "Ferrari-488",
+    "valorFipeEstimado": 2800000,
+    "recallPendente": false,
+    "ultimaRevisaoRecomendadaKm": 15000,
+    "dicaManutencao": "Aquecer o motor antes de exigir performance máxima. Usar apenas peças originais."
+  }
+]

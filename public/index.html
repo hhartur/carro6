@@ -9,8 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
-    <!-- Flatpickr CSS (Uncomment if using) -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> -->
 </head>
 <body>
 
@@ -53,7 +51,6 @@
                              <div class="form-group"> <label for="vehicle-type">Tipo:</label> <select id="vehicle-type" required> <option value="" disabled selected>Selecione...</option> <option value="Car">Carro</option> <option value="SportsCar">Carro Esportivo</option> <option value="Truck">Caminhão</option> </select> </div>
                              <div class="form-row"> <div class="form-group"> <label for="vehicle-make">Marca:</label> <input type="text" id="vehicle-make" required placeholder="Ex: Toyota"> </div> <div class="form-group"> <label for="vehicle-model">Modelo:</label> <input type="text" id="vehicle-model" required placeholder="Ex: Corolla"> </div> </div>
                              <div class="form-group"> <label for="vehicle-year">Ano:</label> <input type="number" id="vehicle-year" required min="1900" max="2099" placeholder="Ex: 2024"> </div>
-                             <!-- Truck Specific Fields -->
                              <div id="truck-specific-fields" class="specific-fields"> <hr class="field-separator"> <div class="form-group"> <label for="truck-max-load">Carga Máxima (kg):</label> <input type="number" id="truck-max-load" min="1" placeholder="Ex: 1000"> </div> <hr class="field-separator"> </div>
                              <button type="submit" class="btn btn-primary btn-submit">Adicionar à Garagem</button>
                         </form>
@@ -61,14 +58,12 @@
                     <section id="garage-list-section" class="card-section">
                         <h2><span class="section-icon">📋</span> Lista de Veículos</h2>
                         <div id="garage-display" class="garage-grid">
-                            <!-- Vehicle cards will be injected here by JS -->
                             <p class="placeholder-text">A garagem está vazia.</p>
                         </div>
                     </section>
                     <section id="future-appointments-garage" class="card-section">
                          <h2><span class="section-icon">🗓️</span> Agendamentos Futuros</h2>
                         <ul id="future-appointments-list" class="styled-list appointment-list">
-                            <!-- Appointments will be injected here by JS -->
                             <li class="placeholder-text">Sem agendamentos futuros.</li>
                         </ul>
                     </section>
@@ -76,9 +71,7 @@
 
                 <!-- Coluna Detalhes (Direita) - CONTAINER FIXO -->
                 <div class="garage-column-details">
-                    <!-- Content will be injected here by JS -->
                     <div id="details-content-area" class="card-section sticky-details details-container-fixed">
-                         <!-- Placeholder or Vehicle Details -->
                          <div class="details-placeholder-content">
                             <span class="placeholder-icon" aria-hidden="true">👈</span>
                             <p>Selecione um veículo na lista para ver os detalhes.</p>
@@ -111,34 +104,19 @@
     <!-- ###################################################### -->
     <template id="vehicle-details-template">
          <section class="vehicle-details-content-wrapper">
-            <!-- Close Button -->
             <button class="close-button" title="Fechar Detalhes" aria-label="Fechar Detalhes">×</button>
-
-            <!-- Title -->
             <h2 class="details-title">Detalhes do Veículo</h2>
-
-            <!-- Main Content Area -->
             <div class="details-content">
-
-                <!-- Vehicle Info (Basic) -->
-                <div class="info-block vehicle-info">
-                    <!-- Populated by JS -->
-                </div>
-
-                <!-- Status Indicators -->
+                <div class="info-block vehicle-info"></div>
                 <div class="status-indicators vehicle-status-indicators">
                     <span class="status-tag status-indicator">Status: -</span>
                     <span class="status-tag speed-indicator">Veloc: - km/h</span>
                     <span class="status-tag turbo-indicator status-tag-turbo" style="display: none;">Turbo: -</span>
                     <span class="status-tag load-indicator status-tag-load" style="display: none;">Carga: -/- kg</span>
                 </div>
-
-                <!-- Engine Visualizer (Optional) -->
                 <div class="engine-visualizer" style="display: none;">
                      <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div>
                 </div>
-
-                <!-- Vehicle Controls -->
                 <div class="button-group vehicle-controls">
                      <button class="btn btn-icon btn-success btn-start"><span class="btn-icon-symbol">▶️</span> <span>Ligar</span></button>
                      <button class="btn btn-icon btn-danger btn-stop"><span class="btn-icon-symbol">⏹️</span> <span>Desligar</span></button>
@@ -146,8 +124,6 @@
                      <button class="btn btn-icon btn-warning btn-brake"><span class="btn-icon-symbol">🛑</span> <span>Frear</span></button>
                      <button class="btn btn-icon btn-accent btn-toggle-turbo" style="display: none;"><span class="btn-icon-symbol">⚡</span> <span>Turbo</span></button>
                 </div>
-
-                 <!-- Truck Load Controls -->
                  <div class="input-group truck-load-controls" style="display: none;">
                       <label for="cargo-amount-detail">Carga (kg):</label>
                       <input type="number" class="cargo-amount" id="cargo-amount-detail" min="1" placeholder="Qtd">
@@ -155,33 +131,55 @@
                       <button class="btn btn-secondary btn-icon btn-unload-cargo"><span class="btn-icon-symbol">➖</span> Descarregar</button>
                  </div>
 
-                 <!-- ===== NEW: API Details Section ===== -->
+                 <!-- ===== API Details Section (Veículos) ===== -->
                  <div class="api-details-section">
                     <button class="btn btn-secondary btn-fetch-api-details">
-                        <span class="btn-icon-symbol">🌐</span> <span>Ver Dados Externos</span>
+                        <span class="btn-icon-symbol">🌐</span> <span class="btn-text">Ver Dados Externos</span> <span class="spinner" style="display: none;"></span>
                     </button>
                     <div class="api-details-content">
-                        <!-- API data will be loaded here by JS -->
                         <p class="placeholder-text">Clique acima para buscar informações adicionais.</p>
                     </div>
                  </div>
                  <!-- ===== END: API Details Section ===== -->
 
+
+                 <!-- ===== [NOVO] Trip Planner Section ===== -->
+                 <section class="trip-planner-section">
+                    <h3><span class="section-icon">✈️</span> Planejador de Viagem</h3>
+                    <form class="trip-form" autocomplete="off">
+                        <div class="form-group">
+                            <label for="trip-origin">Local de Partida:</label>
+                            <input type="text" id="trip-origin" class="trip-origin-input" placeholder="Ex: São Paulo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="trip-destination">Local de Chegada:</label>
+                            <input type="text" id="trip-destination" class="trip-destination-input" placeholder="Ex: Rio de Janeiro" required>
+                        </div>
+                        <button type="submit" class="btn btn-calculate-trip">
+                            <span class="btn-text">Calcular Rota e Clima</span>
+                            <span class="spinner" style="display: none;"></span>
+                        </button>
+                    </form>
+                    <div class="trip-results">
+                        <p class="placeholder-text">Insira a partida e chegada para ver os detalhes da viagem.</p>
+                        <!-- Resultados da viagem serão injetados aqui -->
+                    </div>
+                </section>
+                <!-- ===== END: Trip Planner Section ===== -->
+
+
                 <!-- Maintenance Area -->
                 <div class="maintenance-area">
-                    <!-- History Section -->
                     <div class="maintenance-section">
                         <h3>Histórico de Manutenção</h3>
                         <ul class="styled-list maintenance-list">
-                            <!-- Populated by JS -->
                             <li class="placeholder-text">Nenhum histórico registrado.</li>
                         </ul>
                     </div>
-                    <!-- Form Section -->
                     <div class="maintenance-section form-section">
                          <h3>Agendar / Registrar Manutenção</h3>
                          <form class="schedule-maintenance-form" autocomplete="off">
-                            <input type="hidden" class="selected-vehicle-id"> <!-- Stores current vehicle ID -->
+                            <input type="hidden" class="selected-vehicle-id">
                              <div class="form-group">
                                 <label for="maint-date-detail">Data e Hora:</label>
                                 <input type="datetime-local" class="maint-date" id="maint-date-detail" required>
@@ -203,37 +201,22 @@
                              <button type="submit" class="btn btn-primary btn-submit">Adicionar Registro</button>
                          </form>
                     </div>
-                </div> <!-- End Maintenance Area -->
-
-                 <!-- Remove Vehicle Button -->
+                </div>
                  <button class="btn btn-danger btn-remove-vehicle">Remover Veículo da Garagem</button>
-
-             </div> <!-- End Details Content -->
+             </div>
         </section>
      </template>
     <!-- ###################################################### -->
     <!-- End Template -->
     <!-- ###################################################### -->
 
-
-    <!-- Scripts (Order is Important!) -->
-    <!-- Flatpickr JS (Uncomment if using) -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> -->
-    <!-- <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script> --> <!-- Portuguese locale for Flatpickr -->
-
-    <!-- Utility Functions -->
     <script src="js/utils.js"></script>
-
-    <!-- Class Definitions -->
     <script src="js/models/Maintenance.js"></script>
     <script src="js/models/Vehicle.js"></script>
     <script src="js/models/Car.js"></script>
     <script src="js/models/SportsCar.js"></script>
     <script src="js/models/Truck.js"></script>
     <script src="js/models/Garage.js"></script>
-
-    <!-- Main Application Logic -->
     <script src="js/main.js"></script>
-
 </body>
 </html>
