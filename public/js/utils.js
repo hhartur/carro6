@@ -179,7 +179,7 @@ async function fetchWeatherForDestination(cityName) {
     console.log(`[API Clima] Requesting weather for "${cityName}" from: ${backendUrl}`);
 
     try {
-        const response = await fetch(a);
+        const response = await fetch(backendUrl);
         const data = await response.json(); // Tenta parsear JSON mesmo se não for OK, para pegar msg de erro da API
 
         if (!response.ok) {
