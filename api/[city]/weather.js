@@ -3,6 +3,8 @@ const https = require("https");
 export default function handler(req, res) {
   const { city } = req.query;
   const apiKey = process.env.API_KEY;
+  
+  console.log(city)
 
   if (!apiKey) {
     return res.status(500).json({ error: "API_KEY não configurada" });
