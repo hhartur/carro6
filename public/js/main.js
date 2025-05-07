@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addListener('.schedule-maintenance-form', 'submit', handleScheduleMaintenance);
         addListener('.btn-remove-vehicle', 'click', handleRemoveVehicle);
         addListener('.btn-fetch-api-details', 'click', handleFetchApiDetails);
-        addListener('.trip-form', 'submit', handleCalculateRouteAndWeather); // **** NEW LISTENER ****
+        //addListener('.trip-form', 'submit', handleCalculateRouteAndWeather); // **** NEW LISTENER ****
     }
     function populateDetailsPanelContent(wrapper, vehicle) {
         if (!wrapper || !vehicle) return;
@@ -702,9 +702,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // 1. Fetch Distance (Simulated via backend)
-            const distanceData = await fetchDistanceBetweenCities(originCity, destinationCity);
-            if (distanceData.error) throw new Error(distanceData.message);
-            const distanceKm = distanceData.distance;
+            //const distanceData = await fetchDistanceBetweenCities(originCity, destinationCity);
+            //if (distanceData.error) throw new Error(distanceData.message);
+            //const distanceKm = distanceData.distance;
 
             // 2. Fetch Weather for Destination (Real API via backend)
             const weatherData = await fetchWeatherForDestination(destinationCity);
@@ -713,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 3. Calculate Fuel Cost
             const vehicleType = selectedVehicle._type || 'Vehicle';
             const consumptionRate = VEHICLE_CONSUMPTION_RATES[vehicleType] || VEHICLE_CONSUMPTION_RATES['Vehicle'];
-            const fuelNeededLiters = distanceKm / consumptionRate;
+            //const fuelNeededLiters = distanceKm / consumptionRate;
             const estimatedCost = fuelNeededLiters * FUEL_PRICE_PER_LITER;
 
             // 4. Determine weather status for notification/styling
@@ -732,8 +732,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <ul class="trip-results-list">
                     <li><strong>Origem:</strong> ${originCity}</li>
                     <li><strong>Destino:</strong> ${weatherData.cityFound || destinationCity}</li>
-                    <li><strong>Distância Estimada:</strong> ${distanceKm.toFixed(0)} km</li>
-                    <li><strong>Consumo Estimado (${vehicleType}):</strong> ${fuelNeededLiters.toFixed(1)} L</li>
+                    <!--<li><strong>Distância Estimada:</strong> ${distanceKm.toFixed(0)} km</li>-->
+                    <!--<li><strong>Consumo Estimado (${vehicleType}):</strong> ${fuelNeededLiters.toFixed(1)} L</li>-->
                     <li><strong>Custo Estimado Combustível:</strong> ${estimatedCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</li>
                     <li>
                         <strong>Clima no Destino:</strong>
