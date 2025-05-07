@@ -175,7 +175,7 @@ async function buscarDetalhesVeiculoAPI(identificadorVeiculo) {
  * @returns {Promise<object|{error: boolean, message: string}>} Weather data or error object.
  */
 async function fetchWeatherForDestination(cityName) {
-    const backendUrl = `http://localhost:3000/api/weather/${encodeURIComponent(cityName)}`;
+    const backendUrl = `https://carro6222.vercel.app/api/weather/${encodeURIComponent(cityName)}`;
     console.log(`[API Clima] Requesting weather for "${cityName}" from: ${backendUrl}`);
 
     try {
@@ -207,7 +207,7 @@ async function fetchWeatherForDestination(cityName) {
  * @returns {Promise<object|{error: boolean, message: string}>} Distance data or error object.
  */
 async function fetchDistanceBetweenCities(originCity, destinationCity) {
-    const backendUrl = `http://localhost:3000/api/distance/${encodeURIComponent(originCity)}/${encodeURIComponent(destinationCity)}`;
+    const backendUrl = `https://carro6222.vercel.app/api/distance/${encodeURIComponent(originCity)}/${encodeURIComponent(destinationCity)}`;
     console.log(`[API Distância] Requesting distance between "${originCity}" and "${destinationCity}" from: ${backendUrl}`);
 
     try {
