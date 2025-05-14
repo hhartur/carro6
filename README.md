@@ -40,6 +40,11 @@ O sistema oferece uma interface moderna, responsiva e reativa, além de persist�
     -   **Distância:** Estimada através de uma API simulada no backend (`/api/distance/:origin/:destination`).
     -   **Custo de Combustível:** Calculado com base na distância, tipo do veículo selecionado (consumo médio predefinido) e um preço de combustível configurável (atualmente fixo no código).
     -   **Clima no Destino:** Buscado em tempo real da API OpenWeatherMap através do backend Node.js (`/api/weather/:city`). Exibe temperatura, descrição e sensação térmica.
+    -   **[NOVO] Destaque de Condições Climáticas:**
+        *   Após exibir os resultados do clima, o usuário pode usar checkboxes para destacar visualmente condições específicas:
+            *   **Chuva:** Se a descrição do clima indicar chuva, garoa, tempestade, etc.
+            *   **Frio:** Se a temperatura estiver abaixo de um limite configurado (ex: 10°C).
+            *   **Calor:** Se a temperatura estiver acima de um limite configurado (ex: 30°C).
 -   **Feedback Visual:** Indicador de carregamento durante as buscas e exibição clara dos resultados.
 
 ### 💾 Persistência de Dados

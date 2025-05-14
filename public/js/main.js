@@ -468,6 +468,9 @@ document.addEventListener('DOMContentLoaded', () => {
         addListener('.btn-remove-vehicle', 'click', handleRemoveVehicle);
         addListener('.btn-fetch-api-details', 'click', handleFetchApiDetails);
         addListener('.trip-form', 'submit', handleCalculateRouteAndWeather); // **** NEW LISTENER ****
+        addListener('.trip-highlight-rain', 'change', handleHighlightToggle);
+        addListener('.trip-highlight-cold', 'change', handleHighlightToggle);
+        addListener('.trip-highlight-hot', 'change', handleHighlightToggle);
     }
     function populateDetailsPanelContent(wrapper, vehicle) {
         if (!wrapper || !vehicle) return;
@@ -659,7 +662,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- [NOVO] Trip Planner Handler ---
+    /**
+     * Handles the calculation of route (simulated) and fetching real weather data for the trip planner.
+     * Updates the UI with distance, estimated fuel cost, and weather conditions at the destination.
+     * Also stores the fetched weather data on the resultsArea element for later use by highlight toggles.
+     * @param {Event} event - The form submission event.
+     * @async
+     */
     async function handleCalculateRouteAndWeather(event) {
         event.preventDefault();
         console.log("[Trip] Calculate Route & Weather initiated.");
@@ -742,6 +751,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </li>
                 </ul>
             `;
+            resultsArea._weatherData = weatherData; // Store weather data on the element
+            applyWeatherHighlights(weatherData, resultsArea, wrapper); // Apply initial highlights
             showNotification(`Viagem para ${weatherData.cityFound || destinationCity}: ${weatherAdvice}`, weatherData.temp < 15 ? 'cold' : (weatherData.temp > 28 ? 'hot' : 'info'), 6000);
 
         } catch (error) {
@@ -755,6 +766,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * Handles the toggling of weather condition highlights.
+     * This function is called when any of the highlight checkboxes change state.
+     * It retrieves the weather data stored on the .trip-results element and re-applies highlights.
+     */
+    function handleHighlightToggle() {
+        const wrapper = getCurrentDetailsWrapper();
+        if (!wrapper) return;
+        const resultsArea = wrapper.querySelector('.trip-results');
+        // Check if resultsArea exists and has _weatherData (meaning a successful fetch happened)
+        if (resultsArea && resultsArea._weatherData) {
+            applyWeatherHighlights(resultsArea._weatherData, resultsArea, wrapper);
+        } else {
+            console.log("[Highlight] No weather data to apply highlights to. Calculate a trip first.");
+        }
+    }
+
+    /**
+     * Applies CSS classes to the trip results area to highlight specific weather conditions
+     * based on the current weather data and the state of highlight checkboxes.
+     * @param {object} weatherData - The weather data object for the destination.
+     * @param {HTMLElement} resultsArea - The DOM element where trip results are displayed.
+     * @param {HTMLElement} wrapper - The parent wrapper element containing the highlight checkboxes.
+     */
+    function applyWeatherHighlights(weatherData, resultsArea, wrapper) {
+        if (!weatherData || !resultsArea || !wrapper) return;
+
+        const highlightRainCheck = wrapper.querySelector('.trip-highlight-rain');
+        const highlightColdCheck = wrapper.querySelector('.trip-highlight-cold');
+        const highlightHotCheck = wrapper.querySelector('.trip-highlight-hot');
+
+        resultsArea.classList.remove('highlighted-rain', 'highlighted-cold', 'highlighted-hot');
+
+        if (highlightRainCheck?.checked) {
+            const rainTerms = /rain|chuva|drizzle|garoa|tempestade|thunderstorm|shower/i;
+            if (weatherData.description && rainTerms.test(weatherData.description.toLowerCase())) {
+                resultsArea.classList.add('highlighted-rain');
+            }
+        }
+        if (highlightColdCheck?.checked) {
+            const coldThreshold = parseFloat(highlightColdCheck.dataset.threshold);
+            if (!isNaN(coldThreshold) && weatherData.temp < coldThreshold) resultsArea.classList.add('highlighted-cold');
+        }
+        if (highlightHotCheck?.checked) {
+            const hotThreshold = parseFloat(highlightHotCheck.dataset.threshold);
+            if (!isNaN(hotThreshold) && weatherData.temp > hotThreshold) resultsArea.classList.add('highlighted-hot');
+        }
+    }
 
     // --- Helper to Update All Data Displays ---
     function updateAllRelevantData() {

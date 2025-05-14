@@ -227,6 +227,20 @@
 .trip-results-list .weather-moderate { color: var(--text-primary); } /* Cor padrão para moderado */
 .trip-results-list .weather-hot { color: var(--weather-hot); font-weight: bold; }
 
+/* Estilos para os controles de destaque de clima */
+.trip-highlight-controls {
+    display: flex;
+    gap: 1rem; /* Aumentado para melhor espaçamento */
+    margin-bottom: 1rem; /* Aumentado para melhor espaçamento */
+    flex-wrap: wrap;
+    font-size: 0.85em; /* Um pouco menor para não dominar */
+    padding: 0.5rem 0; /* Adiciona um pouco de padding vertical */
+    align-items: center;
+}
+.trip-highlight-controls label { cursor: pointer; display: flex; align-items: center; gap: 0.4em; color: var(--text-secondary); transition: color var(--transition-fast); }
+.trip-highlight-controls label:hover { color: var(--text-primary); }
+.trip-highlight-controls input[type="checkbox"] { margin-right: 0.2em; transform: scale(0.9); accent-color: var(--accent-1); }
+
 
 /* --- Reset & Base Styling --- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -425,6 +439,27 @@ a:hover { color: var(--text-link-hover); }
 .notification.cold { border-left-color: var(--weather-cold); background-color: #1c3b50; color: var(--text-primary); } /* Fundo mais escuro para 'cold' */
 .notification.hot { border-left-color: var(--weather-hot); background-color: #58391f; color: var(--text-primary); } /* Fundo mais escuro para 'hot' */
 
+/* Estilos para os resultados de viagem destacados */
+.trip-results.highlighted-rain,
+.trip-results.highlighted-cold,
+.trip-results.highlighted-hot {
+    transition: background-color var(--transition-smooth), border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+    border-width: 1px 1px 1px 4px; /* Borda esquerda mais grossa */
+    border-style: solid;
+    padding-left: calc(1.2rem - 3px); /* Ajusta padding para compensar a borda mais grossa */
+}
+.trip-results.highlighted-rain {
+    border-color: var(--accent-1) var(--border-color) var(--border-color) var(--accent-1); /* top right bottom left */
+    background-color: rgba(var(--accent-1-rgb), 0.12);
+}
+.trip-results.highlighted-cold {
+    border-color: var(--weather-cold) var(--border-color) var(--border-color) var(--weather-cold);
+    background-color: rgba(86, 163, 216, 0.12); /* Usando RGB direto para weather-cold */
+}
+.trip-results.highlighted-hot {
+    border-color: var(--weather-hot) var(--border-color) var(--border-color) var(--weather-hot);
+    background-color: rgba(240, 140, 67, 0.12); /* Usando RGB direto para weather-hot */
+}
 .notification span { flex-grow: 1; margin-right: 10px; }
 .notification .close-btn { background:none; border:none; color:inherit; font-size:1.5em; cursor:pointer; opacity:0.7; padding:0 5px; line-height:1; margin-left: auto; flex-shrink: 0; transition: opacity var(--transition-fast); }
 .notification .close-btn:hover { opacity: 1; }
