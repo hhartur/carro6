@@ -175,12 +175,20 @@ async function buscarDetalhesVeiculoAPI(identificadorVeiculo) {
  * @returns {Promise<object|{error: boolean, message: string}>} Weather data or error object.
  */
 async function fetchWeatherForDestination(cityName) {
-    const backendUrl = `https://carro6222.vercel.app/api/weather?city=${encodeURIComponent(cityName)}`;
-    console.log(`[API Clima] Requesting weather for "${cityName}" from: ${backendUrl}`);
+    // https://carro6222.vercel.app
+    const backendUrl = `https://carro6222.vercel.appapi/weather`;
+    console.log(`[API Clima] Enviando POST para "${cityName}" em: ${backendUrl}`);
 
     try {
-        const response = await fetch(backendUrl);
-        const data = await response.json(); // Tenta parsear JSON mesmo se não for OK, para pegar msg de erro da API
+        const response = await fetch(backendUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ city: cityName })
+        });
+
+        const data = await response.json(); // Sempre tenta parsear a resposta
 
         if (!response.ok) {
             console.error(`[API Clima] Erro ${response.status} para "${cityName}":`, data.error || response.statusText);
@@ -192,43 +200,12 @@ async function fetchWeatherForDestination(cityName) {
             console.error(`[API Clima] Dados de clima inválidos ou incompletos para "${cityName}":`, data);
             throw new Error(`Dados de clima inválidos recebidos para ${cityName}.`);
         }
-        return data; // { temp, description, feelsLike, icon, cityFound }
+
+        return data;
     } catch (error) {
         console.error(`[API Clima] Falha ao buscar clima para "${cityName}":`, error);
-        // Retorna um objeto de erro padronizado para o handler principal
         return { error: true, message: error.message || `Não foi possível obter o clima para ${cityName}.` };
     }
-}
-
-/**
- * Fetches (simulated) distance between two locations from the backend API.
- * @param {string} originCity - The name of the origin city.
- * @param {string} destinationCity - The name of the destination city.
- * @returns {Promise<object|{error: boolean, message: string}>} Distance data or error object.
- */
-async function fetchDistanceBetweenCities(originCity, destinationCity) {/*
-    const backendUrl = `https://carro6222.vercel.app/api/distance/${encodeURIComponent(originCity)}/${encodeURIComponent(destinationCity)}`;
-    console.log(`[API Distância] Requesting distance between "${originCity}" and "${destinationCity}" from: ${backendUrl}`);
-
-    try {
-        const response = await fetch(backendUrl);
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error(`[API Distância] Erro ${response.status} para rota ${originCity}-${destinationCity}:`, data.error || response.statusText);
-            throw new Error(data.error || `Erro ${response.status} ao buscar distância.`);
-        }
-
-        console.log(`[API Distância] Dados recebidos para rota ${originCity}-${destinationCity}:`, data);
-        if (!data || typeof data.distance !== 'number') {
-            console.error(`[API Distância] Dados de distância inválidos ou incompletos:`, data);
-            throw new Error(`Dados de distância inválidos recebidos.`);
-        }
-        return data; // { distance, unit }
-    } catch (error) {
-        console.error(`[API Distância] Falha ao buscar distância:`, error);
-        return { error: true, message: error.message || `Não foi possível obter a distância.` };
-    }*/
 }
 
 // --- END OF FILE utils.js ---
