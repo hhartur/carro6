@@ -176,7 +176,7 @@ async function buscarDetalhesVeiculoAPI(identificadorVeiculo) {
  */
 async function fetchWeatherForDestination(cityName) {
     // https://carro6222.vercel.app
-    const backendUrl = `https://carro6222.vercel.appapi/weather`;
+    const backendUrl = `https://carro6222.vercel.app/api/weather`;
     console.log(`[API Clima] Enviando POST para "${cityName}" em: ${backendUrl}`);
 
     try {
