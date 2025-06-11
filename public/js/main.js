@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`[Render] Triggering content for tab: ${tabId}`);
         const tabElement = document.getElementById(`tab-${tabId}`);
         if (!tabElement) return;
-        const sections = tabElement.querySelectorAll('.card-section:not(.sticky-details)');
+        const sections = tabElement.querySelectorAll('.card-section:not(.sticky-details), .stat-card');
         applyStaggeredAnimation(sections, 'visible', 0.08, skipAnimation);
         switch (tabId) {
             case 'dashboard': renderDashboard(); break;
@@ -420,10 +420,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 detailsContentArea.appendChild(detailsWrapper);
                 populateDetailsPanelContent(detailsWrapper, vehicle);
                 setupDetailsPanelEventListeners(detailsWrapper);
-                // Reset API and Trip sections
+                // Reset API, Tip, and Trip sections
                 const apiContent = detailsWrapper.querySelector('.api-details-content');
+                const tipSection = detailsWrapper.querySelector('.maintenance-tip-section');
                 const apiBtn = detailsWrapper.querySelector('.btn-fetch-api-details');
-                if (apiContent) apiContent.innerHTML = '<p class="placeholder-text">Clique para buscar infos adicionais.</p>';
+                
+                if (apiContent) apiContent.innerHTML = '<p class="placeholder-text">Clique para buscar infos e dica de manutenção.</p>';
+                if (tipSection) tipSection.style.display = 'none';
+
                 if (apiBtn) {
                     apiBtn.disabled = false;
                     const btnText = apiBtn.querySelector('.btn-text');
@@ -467,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addListener('.schedule-maintenance-form', 'submit', handleScheduleMaintenance);
         addListener('.btn-remove-vehicle', 'click', handleRemoveVehicle);
         addListener('.btn-fetch-api-details', 'click', handleFetchApiDetails);
-        addListener('.trip-form', 'submit', handleCalculateRouteAndWeather); // **** NEW LISTENER ****
+        addListener('.trip-form', 'submit', handleCalculateRouteAndWeather);
         addListener('.trip-highlight-rain', 'change', handleHighlightToggle);
         addListener('.trip-highlight-cold', 'change', handleHighlightToggle);
         addListener('.trip-highlight-hot', 'change', handleHighlightToggle);
@@ -621,39 +625,87 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleLoadCargo() { if (!(selectedVehicle instanceof Truck)) return; const w = getCurrentDetailsWrapper(), cIn = w?.querySelector('.cargo-amount'); if (!w || !cIn) return; if (selectedVehicle.loadCargo(cIn.value)) { populateDetailsPanelContent(w, selectedVehicle); updateVehicleCardStatus(garageDisplay?.querySelector(`.vehicle-card[data-id="${selectedVehicle.id}"]`), selectedVehicle); triggerVehicleCardAnimation(selectedVehicle.id, 'bounce'); garage.saveToLocalStorage(); updateAllRelevantData(); } }
     function handleUnloadCargo() { if (!(selectedVehicle instanceof Truck)) return; const w = getCurrentDetailsWrapper(), cIn = w?.querySelector('.cargo-amount'); if (!w || !cIn) return; if (selectedVehicle.unloadCargo(cIn.value)) { populateDetailsPanelContent(w, selectedVehicle); updateVehicleCardStatus(garageDisplay?.querySelector(`.vehicle-card[data-id="${selectedVehicle.id}"]`), selectedVehicle); triggerVehicleCardAnimation(selectedVehicle.id, 'bounce'); garage.saveToLocalStorage(); updateAllRelevantData(); } }
 
+    /**
+     * [NOVO] Fetches a specific maintenance tip via a POST request.
+     * @param {string} vehicleIdentifier - The identifier for the vehicle (e.g., "Toyota-Corolla").
+     * @returns {Promise<object|{error: boolean, message: string}>} A promise that resolves with the tip object or an error object.
+     */
+    async function fetchMaintenanceTip(vehicleIdentifier) {
+        console.log(`[API Tip] Buscando dica para: ${vehicleIdentifier}`);
+        try {
+            const response = await fetch('/api/tip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vehicleIdentifier })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || `Erro ${response.status} ao buscar dica.`);
+            }
+            return data;
+        } catch (error) {
+            console.error(`[API Tip] Falha na requisição da dica:`, error);
+            return { error: true, message: error.message };
+        }
+    }
+
+
     // --- API Details (Veículos) Fetch Handler ---
     async function handleFetchApiDetails() {
         if (!selectedVehicle) { showNotification("Selecione um veículo.", "warning"); return; }
         const wrapper = getCurrentDetailsWrapper(); if (!wrapper) return;
         const apiContentArea = wrapper.querySelector('.api-details-content');
+        const tipSection = wrapper.querySelector('.maintenance-tip-section');
+        const tipContent = wrapper.querySelector('.maintenance-tip-content');
         const fetchButton = wrapper.querySelector('.btn-fetch-api-details');
         const btnText = fetchButton?.querySelector('.btn-text');
         const spinner = fetchButton?.querySelector('.spinner');
 
-        if (!apiContentArea || !fetchButton) return;
-        apiContentArea.innerHTML = '<p class="placeholder-text">🔄 Carregando...</p>';
+        if (!apiContentArea || !fetchButton || !tipSection || !tipContent) return;
+
+        // Start loading state
+        apiContentArea.innerHTML = '<p class="placeholder-text">🔄 Carregando dados...</p>';
+        tipSection.style.display = 'block';
+        tipContent.textContent = 'Carregando dica...';
         fetchButton.disabled = true;
         if(btnText) btnText.textContent = 'Carregando...';
         if(spinner) spinner.style.display = 'inline-block';
 
         const idApi = `${selectedVehicle.make}-${selectedVehicle.model}`;
+
         try {
-            const apiData = await buscarDetalhesVeiculoAPI(idApi);
+            // [NOVO] Fetch general data and specific tip in parallel
+            const [apiData, tipData] = await Promise.all([
+                buscarDetalhesVeiculoAPI(idApi),
+                fetchMaintenanceTip(idApi)
+            ]);
+
+            // --- Process and display general API data ---
             if (apiData && !apiData.error) {
-                apiContentArea.innerHTML = `<dl class="api-data-list"><dt>Valor FIPE:</dt><dd>${apiData.valorFipeEstimado?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'N/D'}</dd><dt>Recall Pendente:</dt><dd class="${apiData.recallPendente ? 'recall-warning' : ''}">${apiData.recallPendente ? '⚠️ Sim' : '✅ Não'}</dd><dt>Revisão Rec. (km):</dt><dd>${apiData.ultimaRevisaoRecomendadaKm?.toLocaleString('pt-BR') ?? 'N/D'} km</dd><dt>Dica Manutenção:</dt><dd>${apiData.dicaManutencao || 'N/D.'}</dd></dl>`;
-                showNotification("Dados externos carregados.", "success", 2500);
+                apiContentArea.innerHTML = `<dl class="api-data-list"><dt>Valor FIPE:</dt><dd>${apiData.valorFipeEstimado?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'N/D'}</dd><dt>Recall Pendente:</dt><dd class="${apiData.recallPendente ? 'recall-warning' : ''}">${apiData.recallPendente ? '⚠️ Sim' : '✅ Não'}</dd><dt>Revisão Rec. (km):</dt><dd>${apiData.ultimaRevisaoRecomendadaKm?.toLocaleString('pt-BR') ?? 'N/D'} km</dd></dl>`;
             } else if (apiData && apiData.error) {
-                apiContentArea.innerHTML = `<p class="error-text">❌ Erro: ${apiData.message}</p>`;
-                showNotification(`Erro: ${apiData.message}`, "error");
+                apiContentArea.innerHTML = `<p class="error-text">❌ Erro (Dados Gerais): ${apiData.message}</p>`;
             } else if (apiData === null) {
-                apiContentArea.innerHTML = '<p class="placeholder-text">ℹ️ Detalhes não encontrados.</p>';
-                showNotification("Dados não disponíveis para este modelo.", "info", 3000);
+                apiContentArea.innerHTML = '<p class="placeholder-text">ℹ️ Detalhes gerais não encontrados.</p>';
             } else {
-                apiContentArea.innerHTML = '<p class="error-text">❌ Resposta inesperada.</p>';
-                showNotification("Erro inesperado ao processar dados.", "error");
+                apiContentArea.innerHTML = '<p class="error-text">❌ Resposta inesperada (Dados Gerais).</p>';
             }
+            
+            // --- Process and display maintenance tip data ---
+            if (tipData && !tipData.error) {
+                tipContent.textContent = tipData.tip;
+            } else {
+                tipContent.textContent = `Erro ao buscar dica: ${tipData.message}`;
+                tipContent.classList.add('error-text');
+            }
+            
+            showNotification("Dados externos carregados.", "success", 2500);
+
         } catch (error) {
-            apiContentArea.innerHTML = '<p class="error-text">❌ Erro. Ver console.</p>';
+            console.error("[API] Erro geral ao buscar detalhes e dica:", error);
+            apiContentArea.innerHTML = '<p class="error-text">❌ Erro geral. Ver console.</p>';
+            tipContent.textContent = 'Falha ao carregar a dica.';
+            tipContent.classList.add('error-text');
             showNotification("Erro inesperado ao buscar detalhes.", "error");
         } finally {
             fetchButton.disabled = false;
@@ -664,8 +716,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Handles the calculation of route (simulated) and fetching real weather data for the trip planner.
-     * Updates the UI with distance, estimated fuel cost, and weather conditions at the destination.
-     * Also stores the fetched weather data on the resultsArea element for later use by highlight toggles.
      * @param {Event} event - The form submission event.
      * @async
      */
@@ -710,25 +760,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if(spinner) spinner.style.display = 'inline-block';
 
         try {
-            // 1. Fetch Distance (Simulated via backend)
-            //const distanceData = await fetchDistanceBetweenCities(originCity, destinationCity);
-            //if (distanceData.error) throw new Error(distanceData.message);
-            //const distanceKm = distanceData.distance;
-
-            // 2. Fetch Weather for Destination (Real API via backend)
             const weatherData = await fetchWeatherForDestination(destinationCity);
             if (weatherData.error) throw new Error(weatherData.message);
 
-            // 3. Calculate Fuel Cost
-            const vehicleType = selectedVehicle._type || 'Vehicle';
-            const consumptionRate = VEHICLE_CONSUMPTION_RATES[vehicleType] || VEHICLE_CONSUMPTION_RATES['Vehicle'];
-            //const fuelNeededLiters = distanceKm / consumptionRate;
-            //const estimatedCost = fuelNeededLiters * FUEL_PRICE_PER_LITER;
-
-            // 4. Determine weather status for notification/styling
             let weatherClass = 'weather-moderate';
             let weatherAdvice = "Clima parece bom!";
-            if (weatherData.temp < 15) { // Ajuste os limites conforme necessário
+            if (weatherData.temp < 15) {
                 weatherClass = 'weather-cold';
                 weatherAdvice = "Está frio! Leve agasalhos. 🥶";
             } else if (weatherData.temp > 28) {
@@ -736,7 +773,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 weatherAdvice = "Está quente! Hidrate-se. 🥵";
             }
 
-            // 5. Display Results
             resultsArea.innerHTML = `
                 <ul class="trip-results-list">
                     <li><strong>Origem:</strong> ${originCity}</li>
@@ -768,14 +804,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Handles the toggling of weather condition highlights.
-     * This function is called when any of the highlight checkboxes change state.
-     * It retrieves the weather data stored on the .trip-results element and re-applies highlights.
      */
     function handleHighlightToggle() {
         const wrapper = getCurrentDetailsWrapper();
         if (!wrapper) return;
         const resultsArea = wrapper.querySelector('.trip-results');
-        // Check if resultsArea exists and has _weatherData (meaning a successful fetch happened)
         if (resultsArea && resultsArea._weatherData) {
             applyWeatherHighlights(resultsArea._weatherData, resultsArea, wrapper);
         } else {
@@ -784,11 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Applies CSS classes to the trip results area to highlight specific weather conditions
-     * based on the current weather data and the state of highlight checkboxes.
-     * @param {object} weatherData - The weather data object for the destination.
-     * @param {HTMLElement} resultsArea - The DOM element where trip results are displayed.
-     * @param {HTMLElement} wrapper - The parent wrapper element containing the highlight checkboxes.
+     * Applies CSS classes to the trip results area to highlight specific weather conditions.
      */
     function applyWeatherHighlights(weatherData, resultsArea, wrapper) {
         if (!weatherData || !resultsArea || !wrapper) return;
