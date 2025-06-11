@@ -1,64 +1,83 @@
 const express = require("express");
 const path = require("path");
-const https = require("https");
+const axios = require("axios"); // 1. Usar axios para requisições mais simples
 
-require("dotenv").config()
+require("dotenv").config();
 
 const app = express();
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
-// Rota da API de clima
-app.post("/api/weather", (req, res) => {
-  const { city } = req.body;
+async function getWeather(city) {
   const apiKey = process.env.API_KEY;
 
   if (!apiKey) {
-    return res.status(401).json({ error: "API key não definida" });
+    const error = new Error("API key não definida.");
+    error.statusCode = 401; 
+    throw error;
   }
 
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
     city
   )}&appid=${apiKey}&units=metric&lang=pt_br`;
 
-  https
-    .get(url, (response) => {
-      let data = "";
-      response.on("data", (chunk) => {
-        data += chunk;
-      });
+  try {
+    const response = await axios.get(url);
+    const weatherData = response.data;
 
-      response.on("end", () => {
-        try {
-          const weatherData = JSON.parse(data);
-          if (response.statusCode !== 200) {
-            return res
-              .status(response.statusCode)
-              .json({ error: weatherData.message || "Erro" });
-          }
+    return {
+      temp: weatherData.main.temp,
+      description: weatherData.weather[0].description,
+      feelsLike: weatherData.main.feels_like,
+      icon: weatherData.weather[0].icon,
+      cityFound: weatherData.name,
+    };
+  } catch (err) {
+    if (err.response) {
+      const error = new Error(
+        err.response.data.message || "Erro ao buscar dados da cidade."
+      );
+      error.statusCode = err.response.status;
+      throw error;
+    }
+    throw new Error("Erro ao conectar com a API de clima.");
+  }
+}
 
-          return res.json({
-            temp: weatherData.main.temp,
-            description: weatherData.weather[0].description,
-            feelsLike: weatherData.main.feels_like,
-            icon: weatherData.weather[0].icon,
-            cityFound: weatherData.name,
-          });
-        } catch (err) {
-          return res
-            .status(500)
-            .json({ error: "Erro ao processar resposta da API" });
-        }
-      });
-    })
-    .on("error", (err) => {
-      return res
-        .status(500)
-        .json({ error: "Erro ao conectar com a API de clima" });
-    });
+// Rota da API de clima via POST
+app.post("/api/weather", async (req, res) => {
+  const { city } = req.body;
+
+  if (!city) {
+    return res.status(400).json({ error: "O nome da cidade é obrigatório." });
+  }
+
+  try {
+    const weatherData = await getWeather(city);
+    return res.json(weatherData);
+  } catch (error) {
+    console.error("Erro na rota /api/weather:", error.message);
+    return res
+      .status(error.statusCode || 500)
+      .json({ error: error.message });
+  }
 });
 
-// Inicia o servidor
+// Rota da API de clima via GET
+app.get("/weather/:city", async (req, res) => {
+  const { city } = req.params;
+
+  try {
+    const weatherData = await getWeather(city);
+    return res.json(weatherData);
+  } catch (error) {
+    console.error(`Erro na rota /weather/${city}:`, error.message);
+    return res
+      .status(error.statusCode || 500)
+      .json({ error: error.message });
+  }
+});
+
 app.listen(3000, () => {
-  console.log("Servidor rodando em http://localhost:3000");
+  console.log(`Servidor rodando em http://localhost:3000`);
 });
