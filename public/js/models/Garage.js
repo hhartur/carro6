@@ -1,3 +1,4 @@
+
 // Define a classe Garage para gerenciar uma coleção de veículos
 class Garage {
   constructor() {

@@ -1,12 +1,12 @@
-// --- Smart Garage Nexus - Main Application Logic JS v7.0 (Trip Planner Integration) ---
+// --- Smart Garage Nexus - Main Application Logic JS v9.0 (Create/Update UI) ---
 
 /**
  * @file main.js
- * @description Core logic for Smart Garage Nexus. Handles UI, events, state, models, API calls, and trip planning.
+ * @description Core logic for Smart Garage Nexus. Handles UI, events, state, models, and API calls to the refactored backend.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("[Init 0.1] DOMContentLoaded event fired. Initializing Smart Garage Nexus v7.0 (Trip Planner)...");
+    console.log("[Init 0.1] DOMContentLoaded event fired. Initializing Smart Garage Nexus v9.0 (Create/Update UI)...");
 
     // --- State & Instance Variables ---
     let garage = null;
@@ -15,13 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let isContentSwapping = false;
 
     // --- Configuration (can be moved to a config object or constants file) ---
-    const FUEL_PRICE_PER_LITER = 5.50; // R$
-    const VEHICLE_CONSUMPTION_RATES = { // km/L
-        'Car': 12,
-        'SportsCar': 7,
-        'Truck': 4,
-        'Vehicle': 10 // Default for base Vehicle type
-    };
     const OPENWEATHERMAP_ICON_URL_PREFIX = 'https://openweathermap.org/img/wn/';
 
 
@@ -420,32 +413,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 detailsContentArea.appendChild(detailsWrapper);
                 populateDetailsPanelContent(detailsWrapper, vehicle);
                 setupDetailsPanelEventListeners(detailsWrapper);
-                // Reset API, Tip, and Trip sections
-                const apiContent = detailsWrapper.querySelector('.api-details-content');
-                const tipSection = detailsWrapper.querySelector('.maintenance-tip-section');
-                const apiBtn = detailsWrapper.querySelector('.btn-fetch-api-details');
-                
-                if (apiContent) apiContent.innerHTML = '<p class="placeholder-text">Clique para buscar infos e dica de manutenção.</p>';
-                if (tipSection) tipSection.style.display = 'none';
-
-                if (apiBtn) {
-                    apiBtn.disabled = false;
-                    const btnText = apiBtn.querySelector('.btn-text');
-                    const spinner = apiBtn.querySelector('.spinner');
-                    if(btnText) btnText.textContent = 'Ver Dados Externos';
-                    if(spinner) spinner.style.display = 'none';
-                }
-                const tripResults = detailsWrapper.querySelector('.trip-results');
-                const tripBtn = detailsWrapper.querySelector('.btn-calculate-trip');
-                if (tripResults) tripResults.innerHTML = '<p class="placeholder-text">Insira partida e chegada para detalhes.</p>';
-                if (tripBtn) {
-                    tripBtn.disabled = false;
-                    const btnText = tripBtn.querySelector('.btn-text');
-                    const spinner = tripBtn.querySelector('.spinner');
-                    if(btnText) btnText.textContent = 'Calcular Rota e Clima';
-                    if(spinner) spinner.style.display = 'none';
-                }
-
+                // Reset API and Trip sections
+                resetApiDetailsSection(detailsWrapper);
+                resetTripPlannerSection(detailsWrapper);
             } else {
                 detailsContentArea.innerHTML = `<div class="details-placeholder-content"><span class="placeholder-icon" aria-hidden="true">👈</span><p>Selecione um veículo para ver os detalhes.</p></div>`;
             }
@@ -470,11 +440,16 @@ document.addEventListener('DOMContentLoaded', () => {
         addListener('.btn-unload-cargo', 'click', handleUnloadCargo);
         addListener('.schedule-maintenance-form', 'submit', handleScheduleMaintenance);
         addListener('.btn-remove-vehicle', 'click', handleRemoveVehicle);
-        addListener('.btn-fetch-api-details', 'click', handleFetchApiDetails);
         addListener('.trip-form', 'submit', handleCalculateRouteAndWeather);
         addListener('.trip-highlight-rain', 'change', handleHighlightToggle);
         addListener('.trip-highlight-cold', 'change', handleHighlightToggle);
         addListener('.trip-highlight-hot', 'change', handleHighlightToggle);
+        
+        // [NOVO] Listeners para o painel de edição de API
+        addListener('.btn-fetch-api-details', 'click', handleFetchApiDetails);
+        addListener('.btn-edit-api-details', 'click', handleEditApiDetails);
+        addListener('.btn-cancel-edit-api-details', 'click', handleCancelEditApiDetails);
+        addListener('.api-details-edit-form', 'submit', handleSaveApiDetails);
     }
     function populateDetailsPanelContent(wrapper, vehicle) {
         if (!wrapper || !vehicle) return;
@@ -625,88 +600,99 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleLoadCargo() { if (!(selectedVehicle instanceof Truck)) return; const w = getCurrentDetailsWrapper(), cIn = w?.querySelector('.cargo-amount'); if (!w || !cIn) return; if (selectedVehicle.loadCargo(cIn.value)) { populateDetailsPanelContent(w, selectedVehicle); updateVehicleCardStatus(garageDisplay?.querySelector(`.vehicle-card[data-id="${selectedVehicle.id}"]`), selectedVehicle); triggerVehicleCardAnimation(selectedVehicle.id, 'bounce'); garage.saveToLocalStorage(); updateAllRelevantData(); } }
     function handleUnloadCargo() { if (!(selectedVehicle instanceof Truck)) return; const w = getCurrentDetailsWrapper(), cIn = w?.querySelector('.cargo-amount'); if (!w || !cIn) return; if (selectedVehicle.unloadCargo(cIn.value)) { populateDetailsPanelContent(w, selectedVehicle); updateVehicleCardStatus(garageDisplay?.querySelector(`.vehicle-card[data-id="${selectedVehicle.id}"]`), selectedVehicle); triggerVehicleCardAnimation(selectedVehicle.id, 'bounce'); garage.saveToLocalStorage(); updateAllRelevantData(); } }
 
-    /**
-     * [NOVO] Fetches a specific maintenance tip via a POST request.
-     * @param {string} vehicleIdentifier - The identifier for the vehicle (e.g., "Toyota-Corolla").
-     * @returns {Promise<object|{error: boolean, message: string}>} A promise that resolves with the tip object or an error object.
-     */
-    async function fetchMaintenanceTip(vehicleIdentifier) {
-        console.log(`[API Tip] Buscando dica para: ${vehicleIdentifier}`);
-        try {
-            const response = await fetch('/api/tip', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ vehicleIdentifier })
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || `Erro ${response.status} ao buscar dica.`);
-            }
-            return data;
-        } catch (error) {
-            console.error(`[API Tip] Falha na requisição da dica:`, error);
-            return { error: true, message: error.message };
-        }
-    }
+    
+    // --- [NOVO] API Details Handlers (Create/Update Logic) ---
 
-
-    // --- API Details (Veículos) Fetch Handler ---
-    async function handleFetchApiDetails() {
-        if (!selectedVehicle) { showNotification("Selecione um veículo.", "warning"); return; }
-        const wrapper = getCurrentDetailsWrapper(); if (!wrapper) return;
+    function resetApiDetailsSection(wrapper) {
+        if (!wrapper) wrapper = getCurrentDetailsWrapper();
+        if (!wrapper) return;
         const apiContentArea = wrapper.querySelector('.api-details-content');
         const tipSection = wrapper.querySelector('.maintenance-tip-section');
-        const tipContent = wrapper.querySelector('.maintenance-tip-content');
+        const fetchButton = wrapper.querySelector('.btn-fetch-api-details');
+        const editButton = wrapper.querySelector('.btn-edit-api-details');
+
+        if (apiContentArea) apiContentArea.innerHTML = '<p class="placeholder-text">Clique para buscar ou criar dados para este veículo.</p>';
+        if (tipSection) tipSection.style.display = 'none';
+        
+        toggleApiEditMode(false, wrapper); // Garante que a view de edição está escondida
+        
+        if (fetchButton) {
+            const btnText = fetchButton.querySelector('.btn-text');
+            const spinner = fetchButton.querySelector('.spinner');
+            fetchButton.disabled = false;
+            if (btnText) btnText.textContent = 'Ver Dados Externos';
+            if (spinner) spinner.style.display = 'none';
+        }
+        if (editButton) editButton.style.display = 'none';
+    }
+
+    function resetTripPlannerSection(wrapper) {
+        if (!wrapper) wrapper = getCurrentDetailsWrapper();
+        if (!wrapper) return;
+        const tripResults = wrapper.querySelector('.trip-results');
+        const tripBtn = wrapper.querySelector('.btn-calculate-trip');
+        const tripForm = wrapper.querySelector('.trip-form');
+
+        if (tripResults) tripResults.innerHTML = '<p class="placeholder-text">Insira partida e chegada para detalhes.</p>';
+        if (tripForm) tripForm.reset();
+        if (tripBtn) {
+            tripBtn.disabled = false;
+            const btnText = tripBtn.querySelector('.btn-text');
+            const spinner = tripBtn.querySelector('.spinner');
+            if(btnText) btnText.textContent = 'Calcular Rota e Clima';
+            if(spinner) spinner.style.display = 'none';
+        }
+    }
+    
+    function toggleApiEditMode(isEditing, wrapper) {
+        if (!wrapper) wrapper = getCurrentDetailsWrapper();
+        if (!wrapper) return;
+
+        const viewPanel = wrapper.querySelector('.api-details-content-view');
+        const editForm = wrapper.querySelector('.api-details-edit-form');
+        const editButton = wrapper.querySelector('.btn-edit-api-details');
+        const fetchButton = wrapper.querySelector('.btn-fetch-api-details');
+
+        if (viewPanel) viewPanel.style.display = isEditing ? 'none' : 'block';
+        if (editForm) editForm.style.display = isEditing ? 'block' : 'none';
+        if (fetchButton) fetchButton.style.display = isEditing ? 'none' : 'flex';
+        if (editButton) editButton.style.display = isEditing ? 'none' : 'flex'; // Botão de editar só aparece quando não estamos editando
+    }
+
+    async function handleFetchApiDetails() {
+        if (!selectedVehicle) return;
+        const wrapper = getCurrentDetailsWrapper();
+        if (!wrapper) return;
+
+        const apiContentArea = wrapper.querySelector('.api-details-content');
         const fetchButton = wrapper.querySelector('.btn-fetch-api-details');
         const btnText = fetchButton?.querySelector('.btn-text');
         const spinner = fetchButton?.querySelector('.spinner');
 
-        if (!apiContentArea || !fetchButton || !tipSection || !tipContent) return;
-
-        // Start loading state
         apiContentArea.innerHTML = '<p class="placeholder-text">🔄 Carregando dados...</p>';
-        tipSection.style.display = 'block';
-        tipContent.textContent = 'Carregando dica...';
         fetchButton.disabled = true;
         if(btnText) btnText.textContent = 'Carregando...';
         if(spinner) spinner.style.display = 'inline-block';
 
-        const idApi = `${selectedVehicle.make}-${selectedVehicle.model}`;
+        const vehicleIdentifier = `${selectedVehicle.make}-${selectedVehicle.model}`;
 
         try {
-            // [NOVO] Fetch general data and specific tip in parallel
-            const [apiData, tipData] = await Promise.all([
-                buscarDetalhesVeiculoAPI(idApi),
-                fetchMaintenanceTip(idApi)
-            ]);
-
-            // --- Process and display general API data ---
-            if (apiData && !apiData.error) {
-                apiContentArea.innerHTML = `<dl class="api-data-list"><dt>Valor FIPE:</dt><dd>${apiData.valorFipeEstimado?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'N/D'}</dd><dt>Recall Pendente:</dt><dd class="${apiData.recallPendente ? 'recall-warning' : ''}">${apiData.recallPendente ? '⚠️ Sim' : '✅ Não'}</dd><dt>Revisão Rec. (km):</dt><dd>${apiData.ultimaRevisaoRecomendadaKm?.toLocaleString('pt-BR') ?? 'N/D'} km</dd></dl>`;
-            } else if (apiData && apiData.error) {
-                apiContentArea.innerHTML = `<p class="error-text">❌ Erro (Dados Gerais): ${apiData.message}</p>`;
-            } else if (apiData === null) {
-                apiContentArea.innerHTML = '<p class="placeholder-text">ℹ️ Detalhes gerais não encontrados.</p>';
-            } else {
-                apiContentArea.innerHTML = '<p class="error-text">❌ Resposta inesperada (Dados Gerais).</p>';
-            }
-            
-            // --- Process and display maintenance tip data ---
-            if (tipData && !tipData.error) {
-                tipContent.textContent = tipData.tip;
-            } else {
-                tipContent.textContent = `Erro ao buscar dica: ${tipData.message}`;
-                tipContent.classList.add('error-text');
-            }
-            
+            const apiData = await buscarDetalhesVeiculoAPI(vehicleIdentifier);
+            renderApiDetailsView(apiData, wrapper);
             showNotification("Dados externos carregados.", "success", 2500);
-
         } catch (error) {
-            console.error("[API] Erro geral ao buscar detalhes e dica:", error);
-            apiContentArea.innerHTML = '<p class="error-text">❌ Erro geral. Ver console.</p>';
-            tipContent.textContent = 'Falha ao carregar a dica.';
-            tipContent.classList.add('error-text');
-            showNotification("Erro inesperado ao buscar detalhes.", "error");
+            if (error.status === 404) {
+                // MODO CRIAÇÃO: Veículo não encontrado, então abrimos o formulário de edição
+                console.log(`[API] Nenhum dado encontrado para ${vehicleIdentifier}. Entrando em modo de criação.`);
+                showNotification("Dados não encontrados. Preencha o formulário para criar.", "info");
+                populateApiEditForm(null, wrapper); // Popula com valores vazios/padrão
+                toggleApiEditMode(true, wrapper);
+            } else {
+                // Outro tipo de erro (servidor, rede, etc.)
+                console.error("[API] Erro ao buscar detalhes do veículo:", error);
+                apiContentArea.innerHTML = `<p class="error-text">❌ ${error.message}</p>`;
+                showNotification(`Erro ao buscar dados: ${error.message}`, "error");
+            }
         } finally {
             fetchButton.disabled = false;
             if(btnText) btnText.textContent = 'Ver Dados Externos';
@@ -714,11 +700,119 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Handles the calculation of route (simulated) and fetching real weather data for the trip planner.
-     * @param {Event} event - The form submission event.
-     * @async
-     */
+    function renderApiDetailsView(apiData, wrapper) {
+        if (!wrapper) return;
+        wrapper.dataset.apiData = JSON.stringify(apiData);
+
+        const apiContentArea = wrapper.querySelector('.api-details-content');
+        const tipSection = wrapper.querySelector('.maintenance-tip-section');
+        const tipContent = wrapper.querySelector('.maintenance-tip-content');
+
+        // [CORRIGIDO] Adiciona a renderização do novo campo na visualização
+        apiContentArea.innerHTML = `<dl class="api-data-list">
+            <dt>Valor FIPE:</dt><dd>${apiData.valorFipeEstimado?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'N/D'}</dd>
+            <dt>Revisão Rec. (km):</dt><dd>${apiData.ultimaRevisaoRecomendadaKm?.toLocaleString('pt-BR') ?? 'N/D'} km</dd>
+            <dt>Recall Pendente:</dt><dd class="${apiData.recallPendente ? 'recall-warning' : ''}">${apiData.recallPendente ? '⚠️ Sim' : '✅ Não'}</dd>
+        </dl>`;
+        
+        tipContent.textContent = apiData.dicaManutencao || "Nenhuma dica específica disponível.";
+        tipSection.style.display = 'block';
+
+        toggleApiEditMode(false, wrapper);
+    }
+
+    function populateApiEditForm(apiData, wrapper) {
+        if (!wrapper) return;
+        const form = wrapper.querySelector('.api-details-edit-form');
+        const formTitle = form.querySelector('.edit-form-title');
+
+        const isCreateMode = !apiData;
+        formTitle.innerHTML = `<span class="section-icon">${isCreateMode ? '➕' : '✏️'}</span> ${isCreateMode ? 'Criar Novos Dados' : 'Editar Dados Externos'}`;
+
+        // [CORRIGIDO] Adiciona o preenchimento do novo campo no formulário
+        form.querySelector('.edit-fipe-value').value = apiData?.valorFipeEstimado ?? '';
+        form.querySelector('.edit-revision-km').value = apiData?.ultimaRevisaoRecomendadaKm ?? '';
+        form.querySelector('.edit-recall-status').value = String(apiData?.recallPendente ?? 'false');
+        form.querySelector('.edit-maintenance-tip').value = apiData?.dicaManutencao ?? '';
+    }
+
+    function handleEditApiDetails() {
+        // Esta função agora apenas entra no modo de edição. Os dados já foram buscados.
+        const wrapper = getCurrentDetailsWrapper();
+        if (!wrapper) return;
+
+        // Recupera os dados que foram armazenados no painel para popular o form
+        const apiData = wrapper.dataset.apiData ? JSON.parse(wrapper.dataset.apiData) : null;
+        populateApiEditForm(apiData, wrapper);
+        toggleApiEditMode(true, wrapper);
+    }
+
+    function handleCancelEditApiDetails() {
+        const wrapper = getCurrentDetailsWrapper();
+        if (!wrapper) return;
+        
+        const apiData = wrapper.dataset.apiData ? JSON.parse(wrapper.dataset.apiData) : null;
+        if (apiData) {
+            // Se existiam dados antes, volta a exibi-los
+            toggleApiEditMode(false, wrapper);
+        } else {
+            // Se não existiam (modo criação foi cancelado), reseta a seção
+            resetApiDetailsSection(wrapper);
+        }
+    }
+
+    async function handleSaveApiDetails(event) {
+        event.preventDefault();
+        if (!selectedVehicle) return;
+        const wrapper = document.querySelector('.vehicle-details-content-wrapper');
+        if (!wrapper) return;
+        
+        const form = wrapper.querySelector('.api-details-edit-form');
+        const saveButton = wrapper.querySelector('.btn-save-api-details');
+        
+        // [CORRIGIDO] Coleta o valor do novo campo do formulário
+        const dataToSave = {
+            valorFipeEstimado: parseFloat(form.querySelector('.edit-fipe-value').value) || 0,
+            ultimaRevisaoRecomendadaKm: parseInt(form.querySelector('.edit-revision-km').value) || 0,
+            recallPendente: form.querySelector('.edit-recall-status').value === 'true',
+            dicaManutencao: form.querySelector('.edit-maintenance-tip').value
+        };
+
+        const vehicleIdentifier = `${selectedVehicle.make}-${selectedVehicle.model}`;
+        setLoadingState(saveButton, true, 'Salvando...');
+
+        try {
+            const response = await fetch(`/api/vehicles/${encodeURIComponent(vehicleIdentifier)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSave)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `Erro ${response.status}`);
+            
+            showNotification(result.message, 'success');
+            renderApiDetailsView(result.vehicle, wrapper);
+        } catch (error) {
+            showNotification(`Erro ao salvar: ${error.message}`, 'error');
+        } finally {
+            setLoadingState(saveButton, false, 'Salvar Alterações');
+        }
+    }
+
+    function setLoadingState(button, isLoading, loadingText) {
+        if (!button) return;
+        const btnText = button.querySelector('.btn-text');
+        const spinner = button.querySelector('.spinner');
+        if (!button.dataset.originalText) {
+            button.dataset.originalText = btnText.textContent;
+        }
+
+        button.disabled = isLoading;
+        btnText.textContent = isLoading ? loadingText : button.dataset.originalText;
+        spinner.style.display = isLoading ? 'inline-block' : 'none';
+    }
+
+    // --- Trip Planner Handlers ---
     async function handleCalculateRouteAndWeather(event) {
         event.preventDefault();
         console.log("[Trip] Calculate Route & Weather initiated.");
@@ -802,9 +896,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Handles the toggling of weather condition highlights.
-     */
     function handleHighlightToggle() {
         const wrapper = getCurrentDetailsWrapper();
         if (!wrapper) return;
@@ -816,9 +907,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Applies CSS classes to the trip results area to highlight specific weather conditions.
-     */
     function applyWeatherHighlights(weatherData, resultsArea, wrapper) {
         if (!weatherData || !resultsArea || !wrapper) return;
 

@@ -62,14 +62,22 @@
     --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
-/* === API Details Styling (Veículos) === */
+/* === [ALTERADO] API Details Styling com Painel de Edição === */
 .api-details-section {
     margin-top: 2rem;
     padding-top: 1.5rem;
     border-top: 1px dashed var(--border-color);
 }
+.api-details-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.api-details-content-view {
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
 .api-details-content {
-    margin-top: 1rem;
+    margin-top: 0; /* Removido, pois os controles agora estão acima */
     min-height: 80px;
     border: 1px dashed var(--border-color);
     border-radius: var(--radius-sm);
@@ -97,12 +105,10 @@
 .api-data-list dt::after { content: ":"; }
 .api-data-list dd { margin-left: 60%; margin-top: 0.8rem; color: var(--text-primary); word-wrap: break-word; }
 .api-data-list dd:first-of-type, .api-data-list dt:first-of-type { margin-top: 0; }
-.api-data-list::after { content: ""; display: table; clear: both; }
+.api-data-list::after { content: "" }
 .api-data-list dd:has(> .recall-warning), .api-data-list dd.recall-warning { color: var(--warning); font-weight: bold; }
-.btn-fetch-api-details:disabled { cursor: wait; opacity: 0.6; }
+.btn-fetch-api-details:disabled, .btn-save-api-details:disabled { cursor: wait; opacity: 0.6; }
 
-
-/* === [NOVO] Seção da Dica de Manutenção === */
 .maintenance-tip-section {
     margin-top: 1.5rem;
     padding: 1.5rem;
@@ -133,6 +139,16 @@
 .maintenance-tip-content.error-text {
     color: var(--danger);
     font-style: normal;
+}
+.api-details-edit-form {
+    padding: 2rem;
+    margin-top: 1rem;
+    border: 1px solid var(--accent-1);
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-primary);
+}
+.api-details-edit-form h3 {
+    margin-bottom: 2rem;
 }
 
 

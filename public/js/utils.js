@@ -124,59 +124,37 @@ function generateUniqueId() {
 }
 
 /**
- * Fetches additional vehicle details from the simulated API (local JSON file).
+ * [ATUALIZADO] Fetches additional vehicle details from the backend API.
+ * Throws a custom error with a status code on failure.
  * @param {string} identificadorVeiculo - The unique identifier (e.g., "Make-Model") to search for.
- * @returns {Promise<object|null|{error: boolean, message: string}>} A promise that resolves with:
- *   - The vehicle data object if found.
- *   - `null` if the identifier is not found in the data.
- *   - An object `{ error: true, message: string }` if an HTTP or processing error occurs.
+ * @returns {Promise<object>} A promise that resolves with the vehicle data object.
+ * @throws {Error} Throws a custom error with a .status property on HTTP error.
  */
 async function buscarDetalhesVeiculoAPI(identificadorVeiculo) {
     console.log(`[API Veiculo] Buscando detalhes para: ${identificadorVeiculo}`);
-    const apiUrl = './dados_veiculos_api.json';
+    const apiUrl = `/api/vehicles/${encodeURIComponent(identificadorVeiculo)}`;
 
-    try {
-        const response = await fetch(apiUrl, {
-            headers: { 'Accept': 'application/json' }
-        });
-        if (!response.ok) {
-            console.error(`[API Veiculo] Erro HTTP: ${response.status} - ${response.statusText} ao buscar ${apiUrl}`);
-            let errorMessage = `Falha ao buscar dados do veículo (${response.status}).`;
-            if (response.status === 404) errorMessage = "Arquivo de dados de veículos não encontrado.";
-            return { error: true, message: errorMessage };
-        }
-        const todosOsDados = await response.json();
-        if (!Array.isArray(todosOsDados)) {
-             console.error("[API Veiculo] Erro: O arquivo JSON de veículos não contém um array válido.");
-             return { error: true, message: "Formato de dados de veículos inválido." };
-        }
-        const dadosVeiculo = todosOsDados.find(
-            (data) => data.identificador && data.identificador.toLowerCase() === identificadorVeiculo.toLowerCase()
-        );
-        if (dadosVeiculo) {
-            console.log(`[API Veiculo] Dados encontrados para ${identificadorVeiculo}:`, dadosVeiculo);
-            return dadosVeiculo;
-        } else {
-            console.log(`[API Veiculo] Nenhum dado encontrado para o identificador: ${identificadorVeiculo}`);
-            return null;
-        }
-    } catch (error) {
-        console.error("[API Veiculo] Erro durante a busca ou processamento JSON:", error);
-        let errorMessage = "Erro de rede ou ao processar dados de veículos.";
-        if (error instanceof SyntaxError) errorMessage = "Erro: O arquivo JSON de veículos está mal formatado.";
-        return { error: true, message: errorMessage };
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    if (!response.ok) {
+        const error = new Error(data.error || `Erro HTTP ${response.status}`);
+        error.status = response.status; // Attach status code to the error
+        throw error;
     }
+    
+    console.log(`[API Veiculo] Dados encontrados para ${identificadorVeiculo}:`, data);
+    return data;
 }
 
 
 /**
- * Fetches weather data for a given city from the backend API.
+ * Fetches weather data for a given city from the local backend API.
  * @param {string} cityName - The name of the city.
  * @returns {Promise<object|{error: boolean, message: string}>} Weather data or error object.
  */
 async function fetchWeatherForDestination(cityName) {
-    // https://carro6222.vercel.app
-    const backendUrl = `https://carro6222.vercel.app/api/weather`;
+    const backendUrl = `/api/weather`;
     console.log(`[API Clima] Enviando POST para "${cityName}" em: ${backendUrl}`);
 
     try {
@@ -188,11 +166,11 @@ async function fetchWeatherForDestination(cityName) {
             body: JSON.stringify({ city: cityName })
         });
 
-        const data = await response.json(); // Sempre tenta parsear a resposta
+        const data = await response.json();
 
         if (!response.ok) {
             console.error(`[API Clima] Erro ${response.status} para "${cityName}":`, data.error || response.statusText);
-            throw new Error(data.error || `Erro ${response.status} ao buscar clima para ${cityName}.`);
+            throw new Error(data.error || `Erro ${response.status} ao buscar clima.`);
         }
 
         console.log(`[API Clima] Dados recebidos para "${cityName}":`, data);
