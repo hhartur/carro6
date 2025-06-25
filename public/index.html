@@ -29,21 +29,20 @@
 
     <main class="container tab-container">
 
-        <!-- ===== Painel Dashboard ===== -->
+        <!-- ===== Painel Dashboard (sem alterações) ===== -->
         <div id="tab-dashboard" class="tab-content active-tab" data-tab-content="dashboard" style="display: block;">
-            <section class="card-section intro-section visible" style="transition-delay: 0s;"> <h2>Bem-vindo!</h2> <p>Visão geral da sua garagem inteligente.</p> </section>
+            <section class="card-section intro-section visible"> <h2>Bem-vindo!</h2> <p>Visão geral da sua garagem inteligente.</p> </section>
             <div class="dashboard-grid">
-                <div class="stat-card visible" style="transition-delay: 0s;"> <div class="stat-icon">🔢</div> <div class="stat-value" data-stat="totalVehicles">-</div> <div class="stat-label">Veículos Totais</div> </div>
-                <div class="stat-card visible" style="transition-delay: 0.08s;"> <div class="stat-icon">🏎️</div> <div class="stat-value" data-stat="vehicleTypes">-</div> <div class="stat-label">Distribuição</div> <div class="stat-details" data-stat="typeDetails"></div> </div>
-                <div class="stat-card visible" style="transition-delay: 0.16s;"> <div class="stat-icon">📅</div> <div class="stat-value" data-stat="nextAppointment">Nenhum</div> <div class="stat-label">Próximo Agendamento</div> <div class="stat-details" data-stat="appointmentDetails"></div> </div>
-                <div class="stat-card visible" style="transition-delay: 0.24s;"> <div class="stat-icon">💰</div> <div class="stat-value" data-stat="totalMaintCostDash">R$ 0,00</div> <div class="stat-label">Custo Total Manutenção</div> </div>
+                <div class="stat-card visible"> <div class="stat-icon">🔢</div> <div class="stat-value" data-stat="totalVehicles">-</div> <div class="stat-label">Veículos Totais</div> </div>
+                <div class="stat-card visible"> <div class="stat-icon">🏎️</div> <div class="stat-value" data-stat="vehicleTypes">-</div> <div class="stat-label">Distribuição</div> <div class="stat-details" data-stat="typeDetails"></div> </div>
+                <div class="stat-card visible"> <div class="stat-icon">📅</div> <div class="stat-value" data-stat="nextAppointment">Nenhum</div> <div class="stat-label">Próximo Agendamento</div> <div class="stat-details" data-stat="appointmentDetails"></div> </div>
+                <div class="stat-card visible"> <div class="stat-icon">💰</div> <div class="stat-value" data-stat="totalMaintCostDash">R$ 0,00</div> <div class="stat-label">Custo Total Manutenção</div> </div>
            </div>
         </div>
 
-        <!-- ===== Painel Garagem ===== -->
+        <!-- ===== Painel Garagem (sem alterações) ===== -->
         <div id="tab-garage" class="tab-content" data-tab-content="garage" style="display: none;">
             <div class="garage-layout">
-                <!-- Coluna Principal (Esquerda) -->
                 <div class="garage-column-main">
                     <section id="add-vehicle-section" class="card-section form-section">
                         <h2><span class="section-icon">➕</span> Adicionar Novo Veículo</h2>
@@ -68,8 +67,6 @@
                         </ul>
                     </section>
                 </div>
-
-                <!-- Coluna Detalhes (Direita) - CONTAINER FIXO -->
                 <div class="garage-column-details">
                     <div id="details-content-area" class="card-section sticky-details details-container-fixed">
                          <div class="details-placeholder-content">
@@ -81,7 +78,7 @@
             </div>
         </div>
 
-        <!-- ===== Painel Estatísticas ===== -->
+        <!-- ===== Painel Estatísticas (sem alterações) ===== -->
         <div id="tab-stats" class="tab-content" data-tab-content="stats" style="display: none;">
              <section class="card-section">
                 <h2><span class="section-icon">📈</span> Estatísticas Detalhadas</h2>
@@ -99,9 +96,9 @@
 
      <footer class="main-footer"> <p>© 2025 Smart Garage Nexus.</p> </footer>
 
-    <!-- ###################################################### -->
-    <!-- Template para o *CONTEÚDO* dos Detalhes do Veículo -->
-    <!-- ###################################################### -->
+    <!-- #################################################################### -->
+    <!-- [ALTERADO] Template para o *CONTEÚDO* dos Detalhes do Veículo -->
+    <!-- #################################################################### -->
     <template id="vehicle-details-template">
          <section class="vehicle-details-content-wrapper">
             <button class="close-button" title="Fechar Detalhes" aria-label="Fechar Detalhes">×</button>
@@ -131,24 +128,64 @@
                       <button class="btn btn-secondary btn-icon btn-unload-cargo"><span class="btn-icon-symbol">➖</span> Descarregar</button>
                  </div>
 
-                 <!-- ===== API Details Section (Veículos) ===== -->
+                 <!-- ===== [SEÇÃO ATUALIZADA] Painel de Dados Externos ===== -->
                  <div class="api-details-section">
-                    <button class="btn btn-secondary btn-fetch-api-details">
-                        <span class="btn-icon-symbol">🌐</span> <span class="btn-text">Ver Dados Externos</span> <span class="spinner" style="display: none;"></span>
-                    </button>
-                    <div class="api-details-content">
-                        <p class="placeholder-text">Clique para buscar infos e dica de manutenção.</p>
+                    <div class="api-details-controls">
+                        <button class="btn btn-secondary btn-fetch-api-details">
+                            <span class="btn-icon-symbol">🌐</span> <span class="btn-text">Ver Dados Externos</span> <span class="spinner" style="display: none;"></span>
+                        </button>
+                        <button class="btn btn-secondary btn-edit-api-details" style="display: none;" title="Editar Dados Externos">
+                            <span class="btn-icon-symbol">✏️</span> <span class="btn-text">Editar</span>
+                        </button>
                     </div>
-                    <!-- ===== [NOVO] Seção dedicada para a Dica de Manutenção ===== -->
-                    <div class="maintenance-tip-section" style="display: none;">
-                        <h3><span class="section-icon">💡</span> Dica de Manutenção</h3>
-                        <p class="maintenance-tip-content">Carregando dica...</p>
+
+                    <!-- Área de visualização dos dados -->
+                    <div class="api-details-content-view">
+                        <div class="api-details-content">
+                            <p class="placeholder-text">Clique para buscar ou criar dados para este veículo.</p>
+                        </div>
+                        <div class="maintenance-tip-section" style="display: none;">
+                            <h3><span class="section-icon">💡</span> Dica de Manutenção</h3>
+                            <p class="maintenance-tip-content"></p>
+                        </div>
                     </div>
+                    
+                    <!-- [FORMULÁRIO CORRIGIDO] Formulário de edição com o campo que faltava -->
+                    <form class="api-details-edit-form form-section" style="display: none;" autocomplete="off">
+                        <h3 class="edit-form-title"><span class="section-icon">✏️</span> Editar Dados Externos</h3>
+                        <div class="form-group">
+                            <label for="edit-fipe-value">Valor FIPE (R$):</label>
+                            <input type="number" id="edit-fipe-value" class="edit-fipe-value" step="100" min="0" placeholder="Ex: 85000" required>
+                        </div>
+                        
+                        <!-- [NOVO CAMPO ADICIONADO AQUI] -->
+                        <div class="form-group">
+                            <label for="edit-revision-km">Revisão Recomendada (km):</label>
+                            <input type="number" id="edit-revision-km" class="edit-revision-km" step="1000" min="0" placeholder="Ex: 60000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-recall-status">Recall Pendente:</label>
+                            <select id="edit-recall-status" class="edit-recall-status" required>
+                                <option value="false">Não</option>
+                                <option value="true">Sim</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-maintenance-tip">Dica de Manutenção:</label>
+                            <textarea id="edit-maintenance-tip" class="edit-maintenance-tip" rows="4" placeholder="Descreva a dica de manutenção..."></textarea>
+                        </div>
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary btn-save-api-details">
+                                <span class="btn-text">Salvar Alterações</span>
+                                <span class="spinner" style="display: none;"></span>
+                            </button>
+                            <button type="button" class="btn btn-cancel-edit-api-details">Cancelar</button>
+                        </div>
+                    </form>
                  </div>
                  <!-- ===== END: API Details Section ===== -->
 
-
-                 <!-- ===== Trip Planner Section ===== -->
                  <section class="trip-planner-section">
                     <h3><span class="section-icon">✈️</span> Planejador de Viagem</h3>
                     <form class="trip-form" autocomplete="off">
@@ -178,8 +215,7 @@
                 </section>
                 <!-- ===== END: Trip Planner Section ===== -->
 
-
-                <!-- Maintenance Area -->
+                <!-- ===== Seção de Manutenção (sem alterações) ===== -->
                 <div class="maintenance-area">
                     <div class="maintenance-section">
                         <h3>Histórico de Manutenção</h3>
@@ -217,10 +253,8 @@
              </div>
         </section>
      </template>
-    <!-- ###################################################### -->
-    <!-- End Template -->
-    <!-- ###################################################### -->
-
+    
+    <!-- Scripts Externos -->
     <script src="js/utils.js"></script>
     <script src="js/models/Maintenance.js"></script>
     <script src="js/models/Vehicle.js"></script>
