@@ -47,6 +47,13 @@ let vehicleApiData = [
     "recallPendente": false,
     "ultimaRevisaoRecomendadaKm": 5000,
     "dicaManutencao": "teste"
+  },
+  {
+    "identificador": "asda-sdasdada",
+    "valorFipeEstimado": 1300,
+    "recallPendente": true,
+    "ultimaRevisaoRecomendadaKm": 60000,
+    "dicaManutencao": "123123"
   }
 ];
 
