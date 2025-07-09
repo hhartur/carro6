@@ -11,7 +11,9 @@
     "axios": "^1.9.0",
     "dotenv": "^16.0.0",
     "express": "^4.21.2",
-    "vercel": "^41.0.2"
+    "mongodb": "^6.17.0",
+    "mongoose": "^8.16.2",
+    "vercel": "^28.18.5"
   },
   "devDependencies": {
     "nodemon": "^2.0.0"
