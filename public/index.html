@@ -1,3 +1,4 @@
+<!-- ARQUIVO COMPLETO: /public/index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -29,7 +30,7 @@
 
     <main class="container tab-container">
 
-        <!-- ===== Painel Dashboard (sem alterações) ===== -->
+        <!-- ===== Painel Dashboard ===== -->
         <div id="tab-dashboard" class="tab-content active-tab" data-tab-content="dashboard" style="display: block;">
             <section class="card-section intro-section visible"> <h2>Bem-vindo!</h2> <p>Visão geral da sua garagem inteligente.</p> </section>
             <div class="dashboard-grid">
@@ -40,7 +41,7 @@
            </div>
         </div>
 
-        <!-- ===== Painel Garagem (sem alterações) ===== -->
+        <!-- ===== Painel Garagem ===== -->
         <div id="tab-garage" class="tab-content" data-tab-content="garage" style="display: none;">
             <div class="garage-layout">
                 <div class="garage-column-main">
@@ -78,7 +79,7 @@
             </div>
         </div>
 
-        <!-- ===== Painel Estatísticas (sem alterações) ===== -->
+        <!-- ===== Painel Estatísticas ===== -->
         <div id="tab-stats" class="tab-content" data-tab-content="stats" style="display: none;">
              <section class="card-section">
                 <h2><span class="section-icon">📈</span> Estatísticas Detalhadas</h2>
@@ -96,9 +97,7 @@
 
      <footer class="main-footer"> <p>© 2025 Smart Garage Nexus.</p> </footer>
 
-    <!-- #################################################################### -->
-    <!-- [ALTERADO] Template para o *CONTEÚDO* dos Detalhes do Veículo -->
-    <!-- #################################################################### -->
+    <!-- Template para o *CONTEÚDO* dos Detalhes do Veículo -->
     <template id="vehicle-details-template">
          <section class="vehicle-details-content-wrapper">
             <button class="close-button" title="Fechar Detalhes" aria-label="Fechar Detalhes">×</button>
@@ -128,42 +127,35 @@
                       <button class="btn btn-secondary btn-icon btn-unload-cargo"><span class="btn-icon-symbol">➖</span> Descarregar</button>
                  </div>
 
-                 <!-- ===== [SEÇÃO ATUALIZADA] Painel de Dados Externos ===== -->
+                 <!-- Painel de Dados Adicionais (antigos "Dados Externos") -->
                  <div class="api-details-section">
                     <div class="api-details-controls">
                         <button class="btn btn-secondary btn-fetch-api-details">
-                            <span class="btn-icon-symbol">🌐</span> <span class="btn-text">Ver Dados Externos</span> <span class="spinner" style="display: none;"></span>
+                            <span class="btn-icon-symbol">ℹ️</span> <span class="btn-text">Ver/Editar Dados Adicionais</span>
                         </button>
-                        <button class="btn btn-secondary btn-edit-api-details" style="display: none;" title="Editar Dados Externos">
+                        <button class="btn btn-secondary btn-edit-api-details" style="display: none;" title="Editar Dados Adicionais">
                             <span class="btn-icon-symbol">✏️</span> <span class="btn-text">Editar</span>
                         </button>
                     </div>
-
-                    <!-- Área de visualização dos dados -->
                     <div class="api-details-content-view">
                         <div class="api-details-content">
-                            <p class="placeholder-text">Clique para buscar ou criar dados para este veículo.</p>
+                            <p class="placeholder-text">Clique para exibir ou editar dados adicionais.</p>
                         </div>
                         <div class="maintenance-tip-section" style="display: none;">
                             <h3><span class="section-icon">💡</span> Dica de Manutenção</h3>
                             <p class="maintenance-tip-content"></p>
                         </div>
                     </div>
-                    
-                    <!-- [FORMULÁRIO CORRIGIDO] Formulário de edição com o campo que faltava -->
                     <form class="api-details-edit-form form-section" style="display: none;" autocomplete="off">
-                        <h3 class="edit-form-title"><span class="section-icon">✏️</span> Editar Dados Externos</h3>
+                        <h3 class="edit-form-title"><span class="section-icon">✏️</span> Editar Dados Adicionais</h3>
                         <div class="form-group">
                             <label for="edit-fipe-value">Valor FIPE (R$):</label>
-                            <input type="number" id="edit-fipe-value" class="edit-fipe-value" step="100" min="0" placeholder="Ex: 85000" required>
+                            <input type="number" id="edit-fipe-value" class="edit-fipe-value" step="100" min="0" placeholder="Ex: 85000">
                         </div>
-                        
-                        <!-- [NOVO CAMPO ADICIONADO AQUI] -->
                         <div class="form-group">
                             <label for="edit-revision-km">Revisão Recomendada (km):</label>
-                            <input type="number" id="edit-revision-km" class="edit-revision-km" step="1000" min="0" placeholder="Ex: 60000" required>
+                            <input type="number" id="edit-revision-km" class="edit-revision-km" step="1000" min="0" placeholder="Ex: 60000">
                         </div>
-
                         <div class="form-group">
                             <label for="edit-recall-status">Recall Pendente:</label>
                             <select id="edit-recall-status" class="edit-recall-status" required>
@@ -184,23 +176,14 @@
                         </div>
                     </form>
                  </div>
-                 <!-- ===== END: API Details Section ===== -->
-
+                 
+                 <!-- Planejador de Viagem -->
                  <section class="trip-planner-section">
                     <h3><span class="section-icon">✈️</span> Planejador de Viagem</h3>
                     <form class="trip-form" autocomplete="off">
-                        <div class="form-group">
-                            <label for="trip-origin">Local de Partida:</label>
-                            <input type="text" id="trip-origin" class="trip-origin-input" placeholder="Ex: São Paulo" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="trip-destination">Local de Chegada:</label>
-                            <input type="text" id="trip-destination" class="trip-destination-input" placeholder="Ex: Rio de Janeiro" required>
-                        </div>
-                        <button type="submit" class="btn btn-calculate-trip">
-                            <span class="btn-text">Calcular Rota e Clima</span>
-                            <span class="spinner" style="display: none;"></span>
-                        </button>
+                        <div class="form-group"> <label for="trip-origin">Local de Partida:</label> <input type="text" id="trip-origin" class="trip-origin-input" placeholder="Ex: São Paulo" required> </div>
+                        <div class="form-group"> <label for="trip-destination">Local de Chegada:</label> <input type="text" id="trip-destination" class="trip-destination-input" placeholder="Ex: Rio de Janeiro" required> </div>
+                        <button type="submit" class="btn btn-calculate-trip"> <span class="btn-text">Calcular Rota e Clima</span> <span class="spinner" style="display: none;"></span> </button>
                     </form>
                     <div class="trip-highlight-controls" style="margin-top: 1rem; margin-bottom: 0.5rem;">
                         <span style="font-weight: 500; margin-right: 0.5rem;">Destaques:</span>
@@ -208,43 +191,25 @@
                         <label><input type="checkbox" class="trip-highlight-cold" data-condition="cold" data-threshold="10"> ❄️ Frio (<10°C)</label>
                         <label><input type="checkbox" class="trip-highlight-hot" data-condition="hot" data-threshold="30"> 🔥 Calor (>30°C)</label>
                     </div>
-                    <div class="trip-results">
-                        <p class="placeholder-text">Insira a partida e chegada para ver os detalhes da viagem.</p>
-                        <!-- Resultados da viagem serão injetados aqui -->
-                    </div>
+                    <div class="trip-results"> <p class="placeholder-text">Insira a partida e chegada para ver os detalhes da viagem.</p> </div>
                 </section>
-                <!-- ===== END: Trip Planner Section ===== -->
-
-                <!-- ===== Seção de Manutenção (sem alterações) ===== -->
+                
+                <!-- Manutenção -->
                 <div class="maintenance-area">
                     <div class="maintenance-section">
                         <h3>Histórico de Manutenção</h3>
-                        <ul class="styled-list maintenance-list">
-                            <li class="placeholder-text">Nenhum histórico registrado.</li>
-                        </ul>
+                        <ul class="styled-list maintenance-list"> <li class="placeholder-text">Nenhum histórico registrado.</li> </ul>
                     </div>
                     <div class="maintenance-section form-section">
                          <h3>Agendar / Registrar Manutenção</h3>
                          <form class="schedule-maintenance-form" autocomplete="off">
                             <input type="hidden" class="selected-vehicle-id">
-                             <div class="form-group">
-                                <label for="maint-date-detail">Data e Hora:</label>
-                                <input type="datetime-local" class="maint-date" id="maint-date-detail" required>
-                             </div>
+                             <div class="form-group"> <label for="maint-date-detail">Data e Hora:</label> <input type="datetime-local" class="maint-date" id="maint-date-detail" required> </div>
                              <div class="form-row">
-                                <div class="form-group">
-                                    <label for="maint-type-detail">Tipo:</label>
-                                    <input type="text" class="maint-type" id="maint-type-detail" required placeholder="Ex: Troca de óleo">
-                                </div>
-                                <div class="form-group">
-                                    <label for="maint-cost-detail">Custo (R$):</label>
-                                    <input type="number" class="maint-cost" id="maint-cost-detail" required min="0" step="0.01" value="0" placeholder="0.00">
-                                </div>
+                                <div class="form-group"> <label for="maint-type-detail">Tipo:</label> <input type="text" class="maint-type" id="maint-type-detail" required placeholder="Ex: Troca de óleo"> </div>
+                                <div class="form-group"> <label for="maint-cost-detail">Custo (R$):</label> <input type="number" class="maint-cost" id="maint-cost-detail" required min="0" step="0.01" value="0" placeholder="0.00"> </div>
                              </div>
-                             <div class="form-group">
-                                <label for="maint-desc-detail">Descrição (Opcional):</label>
-                                <textarea class="maint-desc" id="maint-desc-detail" rows="2" placeholder="Detalhes adicionais..."></textarea>
-                             </div>
+                             <div class="form-group"> <label for="maint-desc-detail">Descrição (Opcional):</label> <textarea class="maint-desc" id="maint-desc-detail" rows="2" placeholder="Detalhes adicionais..."></textarea> </div>
                              <button type="submit" class="btn btn-primary btn-submit">Adicionar Registro</button>
                          </form>
                     </div>

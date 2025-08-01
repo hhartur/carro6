@@ -1,3 +1,5 @@
+// ARQUIVO COMPLETO: /services/weatherService.js
+
 const axios = require("axios");
 require("dotenv").config();
 

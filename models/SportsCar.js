@@ -2,10 +2,10 @@
 // O método fromJSON foi refatorado para usar a herança.
 
 class SportsCar extends Car {
-  constructor(make, model, year, id, status, speed, maintenanceHistory, turboOn = false) {
-    super(make, model, year, id, status, speed, maintenanceHistory);
+  constructor(t, e, o, i, s, n, r, a = false) {
+    super(t, e, o, i, s, n, r);
     this._type = "SportsCar";
-    this.turboOn = typeof turboOn === "boolean" ? turboOn : false;
+    this.turboOn = typeof a === "boolean" ? a : false;
   }
 
   toggleTurbo() {
@@ -19,18 +19,18 @@ class SportsCar extends Car {
     return true;
   }
 
-  accelerate(val = 15) {
-    if (!super.accelerate(0)) return false;
-    let effectiveAcceleration = val;
-    if (this.turboOn) effectiveAcceleration *= 1.8;
-    return super.accelerate(effectiveAcceleration);
+  accelerate(t = 15) {
+    if (!super.accelerate(0)) return false; // Apenas verifica se pode acelerar
+    let o = t;
+    if (this.turboOn) o *= 1.8;
+    return super.accelerate(o);
   }
 
   toJSON() {
-    const data = super.toJSON();
-    data.turboOn = this.turboOn;
-    data._type = "SportsCar";
-    return data;
+    const t = super.toJSON();
+    t.turboOn = this.turboOn;
+    t._type = "SportsCar";
+    return t;
   }
 
   // MÉTODO ATUALIZADO

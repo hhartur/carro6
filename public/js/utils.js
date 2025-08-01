@@ -1,6 +1,5 @@
-// --- START OF FILE utils.js ---
-
-// --- Smart Garage Nexus - Utility Functions ---
+// ARQUIVO COMPLETO: /public/js/utils.js
+// Contém as funções de utilidade, incluindo a camada de comunicação com a API.
 
 /**
  * Displays a temporary notification message (toast) on the screen.
@@ -12,18 +11,14 @@ function showNotification(message, type = 'info', duration = 4000) {
     const notificationArea = document.getElementById('notification-area');
     if (!notificationArea) { console.error("CRITICAL: #notification-area not found!"); alert(`Notify Error: Area missing. Msg: ${message}`); return; }
     const notification = document.createElement('div');
-    notification.className = `notification ${type}`; // type pode ser 'cold' ou 'hot' também
+    notification.className = `notification ${type}`;
     const messageSpan = document.createElement('span'); messageSpan.textContent = message; notification.appendChild(messageSpan);
     const closeBtn = document.createElement('button'); closeBtn.innerHTML = '×'; closeBtn.className = 'close-btn'; closeBtn.setAttribute('aria-label', 'Fechar notificação'); closeBtn.title = 'Fechar';
     const closeAction = () => {
         notification.classList.remove('animate-in');
         notification.classList.add('animate-out');
-        notification.addEventListener('transitionend', () => {
-            if (notification.parentNode) notification.remove();
-        }, { once: true });
-        setTimeout(() => {
-            if (notification.parentNode) notification.remove();
-        }, 500);
+        notification.addEventListener('transitionend', () => { if (notification.parentNode) notification.remove(); }, { once: true });
+        setTimeout(() => { if (notification.parentNode) notification.remove(); }, 500);
     };
     closeBtn.addEventListener('click', closeAction);
     notification.appendChild(closeBtn);
@@ -33,6 +28,7 @@ function showNotification(message, type = 'info', duration = 4000) {
     const autoRemoveTimer = setTimeout(closeAction, duration);
     closeBtn.addEventListener('click', () => clearTimeout(autoRemoveTimer), { once: true });
 }
+
 
 /**
  * Displays a modal confirmation dialog.
@@ -70,12 +66,8 @@ function showConfirmation(message, onConfirm, onCancel) {
     btnNo.textContent = 'Não';
     const closeDialog = () => {
         backdrop.classList.remove('visible');
-        backdrop.addEventListener('transitionend', () => {
-            if (backdrop.parentNode) backdrop.remove();
-        }, { once: true });
-        setTimeout(() => {
-            if (backdrop.parentNode) backdrop.remove();
-        }, 400);
+        backdrop.addEventListener('transitionend', () => { if (backdrop.parentNode) backdrop.remove(); }, { once: true });
+        setTimeout(() => { if (backdrop.parentNode) backdrop.remove(); }, 400);
     };
     btnYes.onclick = () => {
         closeDialog();
@@ -123,67 +115,110 @@ function generateUniqueId() {
     return '_' + Math.random().toString(36).substring(2, 11);
 }
 
+// --- API Communication Layer ---
+
+const API_BASE_URL = '/api';
+
 /**
- * [ATUALIZADO] Fetches additional vehicle details from the backend API.
- * Throws a custom error with a status code on failure.
- * @param {string} identificadorVeiculo - The unique identifier (e.g., "Make-Model") to search for.
- * @returns {Promise<object>} A promise that resolves with the vehicle data object.
- * @throws {Error} Throws a custom error with a .status property on HTTP error.
+ * Handles API responses, parsing JSON and creating a structured error on failure.
+ * @param {Response} response - The raw response from a fetch call.
+ * @returns {Promise<any>} The parsed JSON data.
+ * @throws {Error} A custom error with status and message properties.
  */
-async function buscarDetalhesVeiculoAPI(identificadorVeiculo) {
-    console.log(`[API Veiculo] Buscando detalhes para: ${identificadorVeiculo}`);
-    const apiUrl = `/api/vehicles/${encodeURIComponent(identificadorVeiculo)}`;
-
-    const response = await fetch(apiUrl);
+async function handleApiResponse(response) {
     const data = await response.json();
-
     if (!response.ok) {
         const error = new Error(data.error || `Erro HTTP ${response.status}`);
-        error.status = response.status; // Attach status code to the error
+        error.status = response.status;
+        error.details = data.details;
         throw error;
     }
-    
-    console.log(`[API Veiculo] Dados encontrados para ${identificadorVeiculo}:`, data);
     return data;
+}
+
+/**
+ * Fetches all vehicles from the backend.
+ * @returns {Promise<Array>} A promise that resolves with the array of vehicles.
+ */
+async function apiGetAllVehicles() {
+    console.log(`[API] GET ${API_BASE_URL}/vehicles`);
+    const response = await fetch(`${API_BASE_URL}/vehicles`);
+    return handleApiResponse(response);
+}
+
+/**
+ * Creates a new vehicle on the backend.
+ * @param {object} vehicleData - The vehicle data object (from vehicle.toJSON()).
+ * @returns {Promise<object>} The newly created vehicle data from the server.
+ */
+async function apiAddVehicle(vehicleData) {
+    console.log(`[API] POST ${API_BASE_URL}/vehicles`, vehicleData);
+    const response = await fetch(`${API_BASE_URL}/vehicles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(vehicleData)
+    });
+    return handleApiResponse(response);
+}
+
+/**
+ * Updates a full vehicle object on the backend.
+ * @param {string} vehicleId - The ID of the vehicle to update.
+ * @param {object} vehicleData - The complete, updated vehicle data object.
+ * @returns {Promise<object>} The updated vehicle data from the server.
+ */
+async function apiUpdateVehicle(vehicleId, vehicleData) {
+    console.log(`[API] PUT ${API_BASE_URL}/vehicles/${vehicleId}`, vehicleData);
+    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(vehicleData)
+    });
+    return handleApiResponse(response);
+}
+
+/**
+ * Deletes a vehicle on the backend.
+ * @param {string} vehicleId - The ID of the vehicle to delete.
+ * @returns {Promise<object>} The success message from the server.
+ */
+async function apiRemoveVehicle(vehicleId) {
+    console.log(`[API] DELETE ${API_BASE_URL}/vehicles/${vehicleId}`);
+    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
+        method: 'DELETE'
+    });
+    return handleApiResponse(response);
+}
+
+/**
+ * Adds a new maintenance record to a vehicle on the backend.
+ * @param {string} vehicleId - The ID of the vehicle receiving the record.
+ * @param {object} maintenanceData - The maintenance data object (from maintenance.toJSON()).
+ * @returns {Promise<object>} The full vehicle object with the updated maintenance history.
+ */
+async function apiAddMaintenance(vehicleId, maintenanceData) {
+    console.log(`[API] POST ${API_BASE_URL}/vehicles/${vehicleId}/maintenance`, maintenanceData);
+    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}/maintenance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(maintenanceData)
+    });
+    return handleApiResponse(response);
 }
 
 
 /**
  * Fetches weather data for a given city from the local backend API.
  * @param {string} cityName - The name of the city.
- * @returns {Promise<object|{error: boolean, message: string}>} Weather data or error object.
+ * @returns {Promise<object>} Weather data object.
  */
 async function fetchWeatherForDestination(cityName) {
-    const backendUrl = `/api/weather`;
-    console.log(`[API Clima] Enviando POST para "${cityName}" em: ${backendUrl}`);
-
-    try {
-        const response = await fetch(backendUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ city: cityName })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error(`[API Clima] Erro ${response.status} para "${cityName}":`, data.error || response.statusText);
-            throw new Error(data.error || `Erro ${response.status} ao buscar clima.`);
-        }
-
-        console.log(`[API Clima] Dados recebidos para "${cityName}":`, data);
-        if (!data || typeof data.temp !== 'number' || !data.description) {
-            console.error(`[API Clima] Dados de clima inválidos ou incompletos para "${cityName}":`, data);
-            throw new Error(`Dados de clima inválidos recebidos para ${cityName}.`);
-        }
-
-        return data;
-    } catch (error) {
-        console.error(`[API Clima] Falha ao buscar clima para "${cityName}":`, error);
-        return { error: true, message: error.message || `Não foi possível obter o clima para ${cityName}.` };
-    }
+    const backendUrl = `${API_BASE_URL}/weather`; // Rota via POST
+    console.log(`[API Clima] POST to ${backendUrl} for city: "${cityName}"`);
+    const response = await fetch(backendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ city: cityName })
+    });
+    return handleApiResponse(response);
 }
-
-// --- END OF FILE utils.js ---

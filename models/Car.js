@@ -2,15 +2,15 @@
 // O método fromJSON foi simplificado para usar a herança corretamente.
 
 class Car extends Vehicle {
-  constructor(make, model, year, id, status, speed, maintenanceHistory) {
-    super(make, model, year, id, status, speed, maintenanceHistory);
+  constructor(t, e, o, i, s, n, r) {
+    super(t, e, o, i, s, n, r);
     this._type = "Car";
   }
 
   toJSON() {
-    const data = super.toJSON();
-    data._type = "Car";
-    return data;
+    const t = super.toJSON();
+    t._type = "Car";
+    return t;
   }
 
   // MÉTODO ATUALIZADO

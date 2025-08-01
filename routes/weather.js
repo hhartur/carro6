@@ -1,3 +1,5 @@
+// ARQUIVO COMPLETO: /routes/weather.js
+
 const express = require("express");
 const router = express.Router();
 const { getWeather } = require('../services/weatherService');
