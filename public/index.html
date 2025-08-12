@@ -1,4 +1,3 @@
-<!-- ARQUIVO COMPLETO: /public/index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -13,36 +12,81 @@
 </head>
 <body>
 
-    <header class="main-header">
+    <div id="auth-overlay">
+        <div class="auth-container">
+            <div class="auth-box login-box">
+                <h2 class="return-home"><span class="logo-icon">⚡</span> Smart Garage Nexus</h2>
+                <form id="login-form" class="auth-form" autocomplete="off">
+                    <h3>Login</h3>
+                    <div class="form-group">
+                        <label for="login-email">Email:</label>
+                        <input type="email" id="login-email" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Senha:</label>
+                        <input type="password" id="login-password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                    <p class="auth-switch">Não tem uma conta? <a href="#" id="show-register">Cadastre-se</a></p>
+                </form>
+            </div>
+            <div class="auth-box register-box">
+                <h2 class="return-home"><span class="logo-icon">⚡</span> Smart Garage Nexus</h2>
+                <form id="register-form" class="auth-form" autocomplete="off">
+                    <h3>Cadastro</h3>
+                    <div class="form-group">
+                        <label for="register-username">Nome de Usuário:</label>
+                        <input type="text" id="register-username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email:</label>
+                        <input type="email" id="register-email" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Senha:</label>
+                        <input type="password" id="register-password" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                    <p class="auth-switch">Já tem uma conta? <a href="#" id="show-login">Faça login</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <header class="main-header" style="display: none;">
         <div class="header-content">
             <h1><span class="logo-icon">⚡</span> Smart Garage Nexus</h1>
             <nav class="main-nav" aria-label="Navegação principal">
                 <ul>
-                    <li><a href="#dashboard" class="nav-link active" data-tab-target="dashboard">📊 Dashboard</a></li>
-                    <li><a href="#garage" class="nav-link" data-tab-target="garage">🚗 Garagem</a></li>
-                    <li><a href="#stats" class="nav-link" data-tab-target="stats">📈 Estatísticas</a></li>
+                    <li><a href="#dashboard" class="nav-link" data-tab-target="dashboard" data-protected="true">📊 Dashboard</a></li>
+                    <li><a href="#garage" class="nav-link" data-tab-target="garage" data-protected="true">🚗 Minha Garagem</a></li>
+                    <li><a href="#public-garage" class="nav-link" data-tab-target="public-garage">🌍 Garagem Pública</a></li>
+                    <li><a href="#stats" class="nav-link" data-tab-target="stats" data-protected="true">📈 Estatísticas</a></li>
+                    <li><a href="#profile" class="nav-link" data-tab-target="profile" data-protected="true">👤 Perfil</a></li>
                 </ul>
             </nav>
+            <div id="user-display" style="display: none;">
+                <span class="username"></span>
+                <button id="logout-button" class="btn btn-secondary">Sair</button>
+            </div>
         </div>
     </header>
 
     <div id="notification-area"></div>
 
-    <main class="container tab-container">
+    <main class="container tab-container" style="display: none;">
 
-        <!-- ===== Painel Dashboard ===== -->
-        <div id="tab-dashboard" class="tab-content active-tab" data-tab-content="dashboard" style="display: block;">
-            <section class="card-section intro-section visible"> <h2>Bem-vindo!</h2> <p>Visão geral da sua garagem inteligente.</p> </section>
+        <div id="tab-dashboard" class="tab-content" data-tab-content="dashboard">
+            <section class="card-section intro-section"> <h2>Bem-vindo!</h2> <p>Visão geral da sua garagem inteligente.</p> </section>
             <div class="dashboard-grid">
-                <div class="stat-card visible"> <div class="stat-icon">🔢</div> <div class="stat-value" data-stat="totalVehicles">-</div> <div class="stat-label">Veículos Totais</div> </div>
-                <div class="stat-card visible"> <div class="stat-icon">🏎️</div> <div class="stat-value" data-stat="vehicleTypes">-</div> <div class="stat-label">Distribuição</div> <div class="stat-details" data-stat="typeDetails"></div> </div>
-                <div class="stat-card visible"> <div class="stat-icon">📅</div> <div class="stat-value" data-stat="nextAppointment">Nenhum</div> <div class="stat-label">Próximo Agendamento</div> <div class="stat-details" data-stat="appointmentDetails"></div> </div>
-                <div class="stat-card visible"> <div class="stat-icon">💰</div> <div class="stat-value" data-stat="totalMaintCostDash">R$ 0,00</div> <div class="stat-label">Custo Total Manutenção</div> </div>
+                <div class="stat-card"> <div class="stat-icon">🔢</div> <div class="stat-value" data-stat="totalVehicles">-</div> <div class="stat-label">Meus Veículos</div> </div>
+                <div class="stat-card"> <div class="stat-icon">🏎️</div> <div class="stat-value" data-stat="vehicleTypes">-</div> <div class="stat-label">Distribuição</div> <div class="stat-details" data-stat="typeDetails"></div> </div>
+                <div class="stat-card"> <div class="stat-icon">📅</div> <div class="stat-value" data-stat="nextAppointment">Nenhum</div> <div class="stat-label">Próximo Agendamento</div> <div class="stat-details" data-stat="appointmentDetails"></div> </div>
+                <div class="stat-card"> <div class="stat-icon">💰</div> <div class="stat-value" data-stat="totalMaintCostDash">R$ 0,00</div> <div class="stat-label">Custo Total Manutenção</div> </div>
            </div>
         </div>
 
-        <!-- ===== Painel Garagem ===== -->
-        <div id="tab-garage" class="tab-content" data-tab-content="garage" style="display: none;">
+        <div id="tab-garage" class="tab-content" data-tab-content="garage">
             <div class="garage-layout">
                 <div class="garage-column-main">
                     <section id="add-vehicle-section" class="card-section form-section">
@@ -56,13 +100,13 @@
                         </form>
                     </section>
                     <section id="garage-list-section" class="card-section">
-                        <h2><span class="section-icon">📋</span> Lista de Veículos</h2>
+                        <h2><span class="section-icon">📋</span> Minha Lista de Veículos</h2>
                         <div id="garage-display" class="garage-grid">
-                            <p class="placeholder-text">A garagem está vazia.</p>
+                            <p class="placeholder-text">Sua garagem está vazia.</p>
                         </div>
                     </section>
                     <section id="future-appointments-garage" class="card-section">
-                         <h2><span class="section-icon">🗓️</span> Agendamentos Futuros</h2>
+                         <h2><span class="section-icon">🗓️</span> Meus Agendamentos Futuros</h2>
                         <ul id="future-appointments-list" class="styled-list appointment-list">
                             <li class="placeholder-text">Sem agendamentos futuros.</li>
                         </ul>
@@ -78,12 +122,21 @@
                 </div>
             </div>
         </div>
+        
+        <div id="tab-public-garage" class="tab-content" data-tab-content="public-garage">
+            <section class="card-section">
+                <h2><span class="section-icon">🌍</span> Garagem Pública</h2>
+                <p class="section-subtitle">Veja os veículos que outros usuários compartilharam.</p>
+                <div id="public-garage-display" class="garage-grid">
+                    <p class="placeholder-text">Carregando veículos públicos...</p>
+                </div>
+            </section>
+        </div>
 
-        <!-- ===== Painel Estatísticas ===== -->
-        <div id="tab-stats" class="tab-content" data-tab-content="stats" style="display: none;">
+        <div id="tab-stats" class="tab-content" data-tab-content="stats">
              <section class="card-section">
-                <h2><span class="section-icon">📈</span> Estatísticas Detalhadas</h2>
-                 <p class="section-subtitle">Análise de custos e distribuição da sua frota.</p>
+                <h2><span class="section-icon">📈</span> Estatísticas da Minha Frota</h2>
+                 <p class="section-subtitle">Análise de custos e distribuição dos seus veículos.</p>
                 <div class="stats-grid">
                      <div class="stat-card large-stat"> <div class="stat-label">Custo Total Manutenção</div> <div class="stat-value" data-stat="totalCost">R$ 0,00</div> </div>
                      <div class="stat-card large-stat"> <div class="stat-label">Custo Médio / Veículo</div> <div class="stat-value" data-stat="avgCost">R$ 0,00</div> </div>
@@ -93,26 +146,75 @@
             </section>
         </div>
 
+        <div id="tab-profile" class="tab-content" data-tab-content="profile">
+            <section class="card-section profile-section">
+                <h2><span class="section-icon">👤</span> Meu Perfil</h2>
+                <p class="section-subtitle">Gerencie suas informações de conta.</p>
+                <form id="profile-form" class="form-section" autocomplete="off">
+                    <div class="form-group">
+                        <label for="profile-email">Email (não pode ser alterado):</label>
+                        <input type="email" id="profile-email" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-username">Nome de Usuário:</label>
+                        <input type="text" id="profile-username" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-submit">
+                        <span class="btn-text">Salvar Alterações</span>
+                        <span class="spinner"></span>
+                    </button>
+                </form>
+            </section>
+        </div>
+
     </main>
 
-     <footer class="main-footer"> <p>© 2025 Smart Garage Nexus.</p> </footer>
+    <footer class="main-footer" style="display: none;"> <p>© 2025 Smart Garage Nexus.</p> </footer>
+    
+    <div id="maintenance-edit-modal-backdrop" class="confirmation-dialog-backdrop" style="display: none;">
+        <div id="maintenance-edit-modal" class="confirmation-dialog form-section">
+            <h3><span class="section-icon">🔧</span> Editar Manutenção</h3>
+            <form id="maintenance-edit-form" autocomplete="off">
+                <input type="hidden" id="edit-maint-id">
+                <div class="form-group">
+                    <label for="edit-maint-date">Data e Hora:</label>
+                    <input type="datetime-local" id="edit-maint-date" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-maint-type">Tipo:</label>
+                        <input type="text" id="edit-maint-type" required placeholder="Ex: Troca de óleo">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-maint-cost">Custo (R$):</label>
+                        <input type="number" id="edit-maint-cost" required min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-maint-desc">Descrição:</label>
+                    <textarea id="edit-maint-desc" rows="2" placeholder="Detalhes..."></textarea>
+                </div>
+                <div class="dialog-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancel-edit-maint">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <!-- Template para o *CONTEÚDO* dos Detalhes do Veículo -->
+
     <template id="vehicle-details-template">
          <section class="vehicle-details-content-wrapper">
             <button class="close-button" title="Fechar Detalhes" aria-label="Fechar Detalhes">×</button>
             <h2 class="details-title">Detalhes do Veículo</h2>
             <div class="details-content">
                 <div class="info-block vehicle-info"></div>
-                <div class="status-indicators vehicle-status-indicators">
-                    <span class="status-tag status-indicator">Status: -</span>
-                    <span class="status-tag speed-indicator">Veloc: - km/h</span>
-                    <span class="status-tag turbo-indicator status-tag-turbo" style="display: none;">Turbo: -</span>
-                    <span class="status-tag load-indicator status-tag-load" style="display: none;">Carga: -/- kg</span>
-                </div>
+                <div class="status-indicators vehicle-status-indicators"></div>
+
                 <div class="engine-visualizer" style="display: none;">
-                     <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div> <div class="bar"></div>
+                     <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
                 </div>
+                
                 <div class="button-group vehicle-controls">
                      <button class="btn btn-icon btn-success btn-start"><span class="btn-icon-symbol">▶️</span> <span>Ligar</span></button>
                      <button class="btn btn-icon btn-danger btn-stop"><span class="btn-icon-symbol">⏹️</span> <span>Desligar</span></button>
@@ -120,24 +222,33 @@
                      <button class="btn btn-icon btn-warning btn-brake"><span class="btn-icon-symbol">🛑</span> <span>Frear</span></button>
                      <button class="btn btn-icon btn-accent btn-toggle-turbo" style="display: none;"><span class="btn-icon-symbol">⚡</span> <span>Turbo</span></button>
                 </div>
+
                  <div class="input-group truck-load-controls" style="display: none;">
                       <label for="cargo-amount-detail">Carga (kg):</label>
                       <input type="number" class="cargo-amount" id="cargo-amount-detail" min="1" placeholder="Qtd">
                       <button class="btn btn-secondary btn-icon btn-load-cargo"><span class="btn-icon-symbol">➕</span> Carregar</button>
                       <button class="btn btn-secondary btn-icon btn-unload-cargo"><span class="btn-icon-symbol">➖</span> Descarregar</button>
                  </div>
-
-                 <!-- Painel de Dados Adicionais (antigos "Dados Externos") -->
+                
+                 <div class="settings-section">
+                    <h3><span class="section-icon">⚙️</span> Configurações</h3>
+                    <div class="privacy-control">
+                        <label for="privacy-toggle">Visibilidade:</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="privacy-toggle" class="privacy-toggle-checkbox">
+                            <label for="privacy-toggle" class="toggle-label"></label>
+                        </div>
+                        <span class="privacy-status">Privado</span>
+                    </div>
+                 </div>
+                 
                  <div class="api-details-section">
                     <div class="api-details-controls">
-                        <button class="btn btn-secondary btn-fetch-api-details">
-                            <span class="btn-icon-symbol">ℹ️</span> <span class="btn-text">Ver/Editar Dados Adicionais</span>
-                        </button>
-                        <button class="btn btn-secondary btn-edit-api-details" style="display: none;" title="Editar Dados Adicionais">
-                            <span class="btn-icon-symbol">✏️</span> <span class="btn-text">Editar</span>
-                        </button>
+                        <button class="btn btn-secondary btn-fetch-api-details"><span class="btn-icon-symbol">ℹ️</span> <span class="btn-text">Ver/Editar Dados Adicionais</span></button>
+                        <button class="btn btn-secondary btn-edit-api-details" style="display: none;"><span class="btn-icon-symbol">✏️</span> <span class="btn-text">Editar</span></button>
                     </div>
-                    <div class="api-details-content-view">
+                    <!-- CORREÇÃO APLICADA AQUI -->
+                    <div class="api-details-content-view" style="display: none;">
                         <div class="api-details-content">
                             <p class="placeholder-text">Clique para exibir ou editar dados adicionais.</p>
                         </div>
@@ -148,53 +259,30 @@
                     </div>
                     <form class="api-details-edit-form form-section" style="display: none;" autocomplete="off">
                         <h3 class="edit-form-title"><span class="section-icon">✏️</span> Editar Dados Adicionais</h3>
-                        <div class="form-group">
-                            <label for="edit-fipe-value">Valor FIPE (R$):</label>
-                            <input type="number" id="edit-fipe-value" class="edit-fipe-value" step="100" min="0" placeholder="Ex: 85000">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-revision-km">Revisão Recomendada (km):</label>
-                            <input type="number" id="edit-revision-km" class="edit-revision-km" step="1000" min="0" placeholder="Ex: 60000">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-recall-status">Recall Pendente:</label>
-                            <select id="edit-recall-status" class="edit-recall-status" required>
-                                <option value="false">Não</option>
-                                <option value="true">Sim</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-maintenance-tip">Dica de Manutenção:</label>
-                            <textarea id="edit-maintenance-tip" class="edit-maintenance-tip" rows="4" placeholder="Descreva a dica de manutenção..."></textarea>
-                        </div>
-                        <div class="button-group">
-                            <button type="submit" class="btn btn-primary btn-save-api-details">
-                                <span class="btn-text">Salvar Alterações</span>
-                                <span class="spinner" style="display: none;"></span>
-                            </button>
-                            <button type="button" class="btn btn-cancel-edit-api-details">Cancelar</button>
-                        </div>
+                        <div class="form-group"><label for="edit-fipe-value">Valor FIPE (R$):</label><input type="number" class="edit-fipe-value" step="100" min="0" placeholder="Ex: 85000"></div>
+                        <div class="form-group"><label for="edit-revision-km">Revisão Recomendada (km):</label><input type="number" class="edit-revision-km" step="1000" min="0" placeholder="Ex: 60000"></div>
+                        <div class="form-group"><label for="edit-recall-status">Recall Pendente:</label><select class="edit-recall-status" required><option value="false">Não</option><option value="true">Sim</option></select></div>
+                        <div class="form-group"><label for="edit-maintenance-tip">Dica de Manutenção:</label><textarea class="edit-maintenance-tip" rows="4" placeholder="Descreva a dica..."></textarea></div>
+                        <div class="button-group"><button type="submit" class="btn btn-primary btn-save-api-details"><span class="btn-text">Salvar</span><span class="spinner" style="display: none;"></span></button><button type="button" class="btn btn-cancel-edit-api-details">Cancelar</button></div>
                     </form>
                  </div>
                  
-                 <!-- Planejador de Viagem -->
                  <section class="trip-planner-section">
                     <h3><span class="section-icon">✈️</span> Planejador de Viagem</h3>
                     <form class="trip-form" autocomplete="off">
-                        <div class="form-group"> <label for="trip-origin">Local de Partida:</label> <input type="text" id="trip-origin" class="trip-origin-input" placeholder="Ex: São Paulo" required> </div>
-                        <div class="form-group"> <label for="trip-destination">Local de Chegada:</label> <input type="text" id="trip-destination" class="trip-destination-input" placeholder="Ex: Rio de Janeiro" required> </div>
+                        <div class="form-group"> <label for="trip-origin">Local de Partida:</label> <input type="text" class="trip-origin-input" placeholder="Ex: São Paulo" required> </div>
+                        <div class="form-group"> <label for="trip-destination">Local de Chegada:</label> <input type="text" class="trip-destination-input" placeholder="Ex: Rio de Janeiro" required> </div>
                         <button type="submit" class="btn btn-calculate-trip"> <span class="btn-text">Calcular Rota e Clima</span> <span class="spinner" style="display: none;"></span> </button>
                     </form>
-                    <div class="trip-highlight-controls" style="margin-top: 1rem; margin-bottom: 0.5rem;">
+                    <div class="trip-highlight-controls">
                         <span style="font-weight: 500; margin-right: 0.5rem;">Destaques:</span>
                         <label><input type="checkbox" class="trip-highlight-rain" data-condition="rain"> 🌧️ Chuva</label>
                         <label><input type="checkbox" class="trip-highlight-cold" data-condition="cold" data-threshold="10"> ❄️ Frio (<10°C)</label>
                         <label><input type="checkbox" class="trip-highlight-hot" data-condition="hot" data-threshold="30"> 🔥 Calor (>30°C)</label>
                     </div>
-                    <div class="trip-results"> <p class="placeholder-text">Insira a partida e chegada para ver os detalhes da viagem.</p> </div>
+                    <div class="trip-results"> <p class="placeholder-text">Insira a partida e chegada para ver os detalhes.</p> </div>
                 </section>
                 
-                <!-- Manutenção -->
                 <div class="maintenance-area">
                     <div class="maintenance-section">
                         <h3>Histórico de Manutenção</h3>
@@ -203,7 +291,6 @@
                     <div class="maintenance-section form-section">
                          <h3>Agendar / Registrar Manutenção</h3>
                          <form class="schedule-maintenance-form" autocomplete="off">
-                            <input type="hidden" class="selected-vehicle-id">
                              <div class="form-group"> <label for="maint-date-detail">Data e Hora:</label> <input type="datetime-local" class="maint-date" id="maint-date-detail" required> </div>
                              <div class="form-row">
                                 <div class="form-group"> <label for="maint-type-detail">Tipo:</label> <input type="text" class="maint-type" id="maint-type-detail" required placeholder="Ex: Troca de óleo"> </div>
@@ -219,7 +306,6 @@
         </section>
      </template>
     
-    <!-- Scripts Externos -->
     <script src="js/utils.js"></script>
     <script src="js/models/Maintenance.js"></script>
     <script src="js/models/Vehicle.js"></script>
@@ -227,6 +313,7 @@
     <script src="js/models/SportsCar.js"></script>
     <script src="js/models/Truck.js"></script>
     <script src="js/models/Garage.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

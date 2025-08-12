@@ -1,21 +1,20 @@
-// ARQUIVO ALTERADO: /public/js/models/Car.js
-// O método fromJSON foi simplificado para usar a herança corretamente.
+// ARQUIVO CORRIGIDO: /public/js/models/Car.js
 
 class Car extends Vehicle {
-  constructor(t, e, o, i, s, n, r) {
-    super(t, e, o, i, s, n, r);
+  constructor(make, model, year, id, status, speed, maintenanceHistory, owner) {
+    // Passa todos os parâmetros, incluindo 'owner', para a classe pai Vehicle
+    super(make, model, year, id, status, speed, maintenanceHistory, owner);
     this._type = "Car";
   }
 
   toJSON() {
-    const t = super.toJSON();
-    t._type = "Car";
-    return t;
+    const data = super.toJSON();
+    data._type = "Car";
+    return data;
   }
 
-  // MÉTODO ATUALIZADO
   static fromJSON(data) {
-    if (!data || data._type !== "Car") {
+    if (!data || (data._type !== "Car" && data._type !== "SportsCar")) { // SportsCar herda de Car
         data && console.warn(`Car.fromJSON tipo incorreto: ${data._type}`);
         return null;
     }

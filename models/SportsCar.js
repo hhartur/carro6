@@ -1,11 +1,8 @@
-// ARQUIVO ALTERADO: /public/js/models/SportsCar.js
-// O método fromJSON foi refatorado para usar a herança.
-
 class SportsCar extends Car {
-  constructor(t, e, o, i, s, n, r, a = false) {
-    super(t, e, o, i, s, n, r);
+  constructor(make, model, year, id, status, speed, maintenanceHistory, owner, turboOn = false) {
+    super(make, model, year, id, status, speed, maintenanceHistory, owner); // <-- owner foi adicionado aqui
     this._type = "SportsCar";
-    this.turboOn = typeof a === "boolean" ? a : false;
+    this.turboOn = typeof turboOn === "boolean" ? turboOn : false;
   }
 
   toggleTurbo() {
@@ -19,30 +16,27 @@ class SportsCar extends Car {
     return true;
   }
 
-  accelerate(t = 15) {
-    if (!super.accelerate(0)) return false; // Apenas verifica se pode acelerar
-    let o = t;
-    if (this.turboOn) o *= 1.8;
-    return super.accelerate(o);
+  accelerate(val = 15) {
+    if (!super.accelerate(0)) return false;
+    let effectiveAcceleration = val;
+    if (this.turboOn) effectiveAcceleration *= 1.8;
+    return super.accelerate(effectiveAcceleration);
   }
 
   toJSON() {
-    const t = super.toJSON();
-    t.turboOn = this.turboOn;
-    t._type = "SportsCar";
-    return t;
+    const data = super.toJSON();
+    data.turboOn = this.turboOn;
+    data._type = "SportsCar";
+    return data;
   }
-
-  // MÉTODO ATUALIZADO
+  
   static fromJSON(data) {
     if (!data || data._type !== "SportsCar") {
         data && console.warn(`SportsCar.fromJSON tipo incorreto: ${data._type}`);
         return null;
     }
-    // Chama o fromJSON da classe PAI (Vehicle) para criar a base do objeto
     const vehicle = super.fromJSON.call(this, data);
     if (vehicle) {
-        // Adiciona a propriedade específica desta classe
         vehicle.turboOn = data.turboOn || false;
     }
     return vehicle;
