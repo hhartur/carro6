@@ -1,8 +1,19 @@
-// ARQUIVO ALTERADO: /public/js/models/Vehicle.js
-// O método fromJSON foi refinado para ser a base para as subclasses.
-
+/**
+ * ARQUIVO REATORADO: /public/js/models/Vehicle.js
+ *
+ * MUDANÇA PRINCIPAL: O construtor agora aceita um único objeto de dados
+ * ({ make, model, year, ... }) em vez de uma longa lista de parâmetros.
+ *
+ * PORQUÊ: Isso elimina a fragilidade da ordem dos parâmetros, tornando o código
+ * mais seguro, legível e fácil de estender no futuro.
+ */
 class Vehicle {
-  constructor(
+  /**
+   * O construtor agora usa desestruturação de objeto.
+   * A ordem dos parâmetros no objeto não importa, e os valores padrão
+   * são definidos de forma limpa.
+   */
+  constructor({
     make,
     model,
     year,
@@ -10,42 +21,53 @@ class Vehicle {
     status = "off",
     speed = 0,
     maintenanceHistory = [],
-    owner = null
-  ) {
-    if (
-      !make ||
-      !String(make).trim() ||
-      !model ||
-      !String(model).trim() ||
-      !year
-    )
+    owner = null,
+    isPublic = false,
+    valorFipeEstimado = null,
+    recallPendente = false,
+    ultimaRevisaoRecomendadaKm = null,
+    dicaManutencao = "",
+  }) {
+    // 1. Validação dos dados essenciais
+    if (!make || !model || !year) {
       throw new Error("Vehicle constructor requer 'make', 'model' e 'year'.");
+    }
 
+    // 2. Atribuição das propriedades principais
     this.id = id;
     this.make = String(make).trim();
     this.model = String(model).trim();
+
+    // 3. Lógica de validação e parse do ano
     this.year = parseInt(year);
     const currentYear = new Date().getFullYear();
-    if (isNaN(this.year) || this.year < 1886 || this.year > currentYear + 2)
+    if (isNaN(this.year) || this.year < 1886 || this.year > currentYear + 2) {
       this.year = currentYear;
+    }
 
+    // 4. Lógica de validação de status e velocidade
     this.status = ["off", "on", "moving"].includes(status) ? status : "off";
     this.speed = this.status === "off" ? 0 : parseFloat(speed) || 0;
 
+    // 5. Reconstrução segura do histórico de manutenção
     this.maintenanceHistory = Array.isArray(maintenanceHistory)
       ? maintenanceHistory.map((m) => Maintenance.fromJSON(m)).filter(Boolean)
       : [];
     this.sortMaintenanceHistory();
 
-    this._type = "Vehicle";
-    this.owner = owner; // <-- ADICIONADO: Armazena a informação do dono
+    // 6. Atribuição das demais propriedades
+    this._type = "Vehicle"; // Será sobrescrito pelas subclasses
+    this.owner = owner;
+    this.isPublic = isPublic;
 
-    // Inicializa os dados "externos" com valores padrão.
-    this.valorFipeEstimado = null;
-    this.recallPendente = false;
-    this.ultimaRevisaoRecomendadaKm = null;
-    this.dicaManutencao = "";
+    // 7. Inicialização dos dados "externos"
+    this.valorFipeEstimado = valorFipeEstimado;
+    this.recallPendente = recallPendente;
+    this.ultimaRevisaoRecomendadaKm = ultimaRevisaoRecomendadaKm;
+    this.dicaManutencao = dicaManutencao;
   }
+
+  // --- MÉTODOS DE INSTÂNCIA (Nenhuma mudança necessária aqui) ---
 
   sortMaintenanceHistory() {
     this.maintenanceHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -114,7 +136,10 @@ class Vehicle {
     return this.maintenanceHistory.map((m) => m.format());
   }
 
+  // --- SERIALIZAÇÃO (Nenhuma mudança necessária aqui) ---
+
   toJSON() {
+    // Este método continua funcionando perfeitamente.
     return {
       _type: this._type,
       id: this.id,
@@ -128,35 +153,28 @@ class Vehicle {
       recallPendente: this.recallPendente,
       ultimaRevisaoRecomendadaKm: this.ultimaRevisaoRecomendadaKm,
       dicaManutencao: this.dicaManutencao,
-      owner: this.owner, // <-- ADICIONADO: Inclui o dono na serialização
+      owner: this.owner,
       isPublic: this.isPublic,
     };
   }
 
+  // --- MÉTODO ESTÁTICO DE RECONSTRUÇÃO (Agora simplificado) ---
+
+  /**
+   * O método fromJSON agora é muito mais simples.
+   * Ele apenas passa o objeto de dados para o construtor da classe correta.
+   * O `new this(data)` garante que se for chamado por `Truck.fromJSON`,
+   * ele executará `new Truck(data)`.
+   */
   static fromJSON(data) {
     if (!data || !data.make || !data.model || !data.year) {
       console.warn("Vehicle.fromJSON falhou: Dados base ausentes.", data);
       return null;
     }
     try {
-      const vehicle = new this(
-        data.make,
-        data.model,
-        data.year,
-        data.id,
-        data.status,
-        data.speed,
-        data.maintenanceHistory,
-        data.owner
-      );
-
-      vehicle.valorFipeEstimado = data.valorFipeEstimado;
-      vehicle.recallPendente = data.recallPendente;
-      vehicle.ultimaRevisaoRecomendadaKm = data.ultimaRevisaoRecomendadaKm;
-      vehicle.dicaManutencao = data.dicaManutencao;
-      vehicle.isPublic = data.isPublic;
-
-      return vehicle;
+      // A mágica acontece aqui: `new this()` cria uma instância da subclasse
+      // (Car, Truck, etc.) e o construtor dela faz todo o trabalho.
+      return new this(data);
     } catch (e) {
       console.error(
         "Erro ao criar instância de Vehicle via fromJSON:",

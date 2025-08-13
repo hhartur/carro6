@@ -13,13 +13,16 @@ class Car extends Vehicle {
     return data;
   }
 
-  // MÉTODO ATUALIZADO
   static fromJSON(data) {
-    if (!data || data._type !== "Car") {
-        data && console.warn(`Car.fromJSON tipo incorreto: ${data._type}`);
-        return null;
+    // Passo 1: O Car valida SEUS PRÓPRIOS dados.
+    if (data?._type !== "Car") {
+      console.warn(
+        `Car.fromJSON foi chamado com o tipo incorreto: ${data?._type}`
+      );
+      return null;
     }
-    // Chama o método fromJSON da classe PAI (Vehicle), que fará todo o trabalho.
-    return super.fromJSON.call(this, data);
+
+    // Passo 2: Delegue a construção para o ancestral comum (Vehicle).
+    return Vehicle.fromJSON.call(this, data);
   }
 }

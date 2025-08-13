@@ -14,8 +14,8 @@ class Car extends Vehicle {
   }
 
   static fromJSON(data) {
-    if (!data || (data._type !== "Car" && data._type !== "SportsCar")) { // SportsCar herda de Car
-        data && console.warn(`Car.fromJSON tipo incorreto: ${data._type}`);
+    if (!data || (data._type !== "Car")) { // SportsCar herda de Car
+        data && console.warn(`Car.fromJSON tipo incorreto1: ${data._type}`);
         return null;
     }
     // Chama o método fromJSON da classe PAI (Vehicle), que fará todo o trabalho.

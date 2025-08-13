@@ -107,15 +107,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const model = addVehicleForm.querySelector('#vehicle-model')?.value.trim();
         const year = addVehicleForm.querySelector('#vehicle-year')?.value;
         const maxLoad = addVehicleForm.querySelector('#truck-max-load')?.value;
-        if (!type || !make || !model || !year) { showNotification('Preencha Tipo, Marca, Modelo e Ano.', 'warning'); return; }
-        
+
+        if (!type || !make || !model || !year) {
+            showNotification('Preencha Tipo, Marca, Modelo e Ano.', 'warning');
+            return;
+        }
+
         let newVehicle;
         try {
+            // 1. Crie um objeto base com os dados comuns.
+            const vehicleData = { make, model, year };
+
+            // 2. Use o switch para criar a instância correta, passando o objeto.
             switch (type) {
-                case 'Car': newVehicle = new Car(make, model, year); break;
-                case 'SportsCar': newVehicle = new SportsCar(make, model, year); break;
-                case 'Truck': newVehicle = new Truck(make, model, year, maxLoad); break;
-                default: throw new Error('Tipo de veículo inválido.');
+                case 'Car':
+                    newVehicle = new Car(vehicleData);
+                    break;
+                case 'SportsCar':
+                    newVehicle = new SportsCar(vehicleData);
+                    break;
+                case 'Truck':
+                    // Adicione a propriedade específica do caminhão ao objeto de dados.
+                    vehicleData.maxLoad = maxLoad;
+                    newVehicle = new Truck(vehicleData);
+                    break;
+                default:
+                    throw new Error('Tipo de veículo inválido.');
             }
 
             const createdVehicleData = await garage.addVehicle(newVehicle);
@@ -124,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 addVehicleForm.reset();
                 vehicleTypeSelect.value = "";
                 truckSpecificFields?.classList.remove('visible');
-                
+
                 showNotification(`${type.replace(/([A-Z])/g, ' $1').trim()} ${make} ${model} adicionado!`, 'success');
                 updateAllRelevantData();
                 selectVehicle(createdVehicleData.id);
@@ -586,8 +603,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 setupDetailsPanelEventListeners(detailsWrapper);
             }
 
-                        const checkbox = document.getElementById("privacy-toggle")
-            const result = await getVehiclePrivacy(vehicleId)
+            const checkbox = document.getElementById("privacy-toggle")
+            const result = await getVehiclePrivacy(vehicle.id)
             if(!result.isPublic){
                 checkbox.checked = false
             } else{

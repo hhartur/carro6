@@ -2,7 +2,16 @@
 // O método fromJSON foi refatorado para usar a herança.
 
 class SportsCar extends Car {
-  constructor(make, model, year, id, status, speed, maintenanceHistory, turboOn = false) {
+  constructor(
+    make,
+    model,
+    year,
+    id,
+    status,
+    speed,
+    maintenanceHistory,
+    turboOn = false
+  ) {
     super(make, model, year, id, status, speed, maintenanceHistory);
     this._type = "SportsCar";
     this.turboOn = typeof turboOn === "boolean" ? turboOn : false;
@@ -10,12 +19,17 @@ class SportsCar extends Car {
 
   toggleTurbo() {
     if (this.status === "off") {
-      if (typeof showNotification == "function") showNotification(`Ligue o ${this.model} para usar o turbo.`, "warning");
+      if (typeof showNotification == "function")
+        showNotification(`Ligue o ${this.model} para usar o turbo.`, "warning");
       return false;
     }
     this.turboOn = !this.turboOn;
     const statusMsg = this.turboOn ? "ATIVADO" : "DESATIVADO";
-    if (typeof showNotification == "function") showNotification(`Turbo ${statusMsg}!`, this.turboOn ? "success" : "info");
+    if (typeof showNotification == "function")
+      showNotification(
+        `Turbo ${statusMsg}!`,
+        this.turboOn ? "success" : "info"
+      );
     return true;
   }
 
@@ -35,16 +49,18 @@ class SportsCar extends Car {
 
   // MÉTODO ATUALIZADO
   static fromJSON(data) {
-    if (!data || data._type !== "SportsCar") {
-        data && console.warn(`SportsCar.fromJSON tipo incorreto: ${data._type}`);
-        return null;
+    // Passo 1: O SportsCar valida SEUS PRÓPRIOS dados.
+    if (data?._type !== "SportsCar") {
+      console.warn(
+        `SportsCar.fromJSON foi chamado com o tipo incorreto: ${data?._type}`
+      );
+      return null;
     }
-    // Chama o fromJSON da classe PAI (Vehicle) para criar a base do objeto
-    const vehicle = super.fromJSON.call(this, data);
-    if (vehicle) {
-        // Adiciona a propriedade específica desta classe
-        vehicle.turboOn = data.turboOn || false;
-    }
-    return vehicle;
+
+    // Passo 2: Chame a lógica de construção do ancestral comum (Vehicle).
+    // Não use 'super.fromJSON()', pois isso chamaria Car.fromJSON.
+    // Chame explicitamente o método de Vehicle, passando 'this' para que
+    // ele saiba que deve criar um 'new SportsCar(...)'.
+    return Vehicle.fromJSON.call(this, data);
   }
 }

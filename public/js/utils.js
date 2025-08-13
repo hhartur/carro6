@@ -72,21 +72,19 @@ function generateUniqueId() {
  * @returns {Vehicle|null} An instance of Car, SportsCar, or Truck, or null if type is invalid.
  */
 function reconstructVehicle(data) {
-    if (!data || !data._type) return null;
-    const vehicleClass = {
-        'Car': Car,
-        'SportsCar': SportsCar,
-        'Truck': Truck
-    }[data._type];
+    if (!data) return null;
 
-    // ATUALIZADO: Passa o 'data.owner' para a função fromJSON da classe.
-    if (vehicleClass && typeof vehicleClass.fromJSON === 'function') {
-        const vehicle = vehicleClass.fromJSON(data);
-        if(vehicle) vehicle.owner = data.owner; // Garante que o owner seja atribuído.
-        return vehicle;
+    switch (data._type) {
+        case 'Car':
+            return Car.fromJSON(data);
+        case 'SportsCar':
+            return SportsCar.fromJSON(data);
+        case 'Truck':
+            return Truck.fromJSON(data);
+        default:
+            console.error(`Tipo de veículo desconhecido para reconstrução: ${data._type}`);
+            return null;
     }
-    console.warn(`[Reconstruct] Unknown or invalid vehicle type '${data._type}'.`);
-    return null;
 }
 
 // --- API Communication Layer ---
