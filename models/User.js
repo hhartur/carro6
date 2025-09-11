@@ -19,8 +19,28 @@ const UserSchema = new mongoose.Schema(
       match: [/\S+@\S+\.\S+/, "E-mail inválido."],
     },
     password: { type: String, required: true, minlength: 6 },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationCode: {
+      type: String,
+      required: false,
+    },
+    verificationCodeExpires: {
+      type: Date,
+      required: false,
+    },
   },
   { timestamps: true }
+);
+
+UserSchema.index(
+    { createdAt: 1 },
+    {
+        expireAfterSeconds: 600, // 10 minutos
+        partialFilterExpression: { isVerified: false },
+    }
 );
 
 UserSchema.pre("save", async function (next) {

@@ -109,7 +109,7 @@ a:hover {
 #auth-overlay {
   inset: 0;
   background-color: var(--bg-primary);
-  z-index: 2000;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1735,7 +1735,19 @@ input:checked + .toggle-label:before {
     text-align: center;
   }
 }
-
+.main-footer{
+  display: flex;
+  justify-content: center;
+}
+#login-form{
+  display: none;
+}
+#register-form{
+  display: none;
+}
+#verify-form{
+  display: none;
+}
 /* === Ajustes para o Planejador de Viagem === */
 .trip-planner-section .form-group {
     display: flex;
@@ -1914,4 +1926,53 @@ input:checked + .toggle-label:before {
 }
 .return-home{
     cursor: pointer;
+}
+#notification-area{
+  z-index: 99;
+}
+.notification{
+  z-index: 200;
+}
+.otp-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 1rem;
+}
+
+.otp-digit {
+    width: 45px;
+    height: 55px;
+    font-size: 1.6rem;
+    text-align: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: monospace; /* números mais uniformes */
+
+    /* centraliza verticalmente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* remove flechas do input number se mudar para type=number */
+    -moz-appearance: textfield;
+}
+
+.otp-digit:focus {
+    outline: none;
+    border-color: var(--accent-1);
+    box-shadow: 0 0 12px var(--glow-1);
+}
+
+@media (max-width: 480px) {
+    .otp-container {
+        gap: 5px;
+    }
+    .otp-digit {
+        width: 40px;
+        height: 50px;
+        font-size: 1.4rem;
+    }
 }

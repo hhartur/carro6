@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const Vehicle = require("../models/Vehicle");
 const { protect } = require('../middleware/auth');
+const { checkRequestDelay } = require('../lib/Security');
+const { validateString } = require('../lib/utils')
+const crypto = require('crypto'); 
 
 // Busca todos os veículos do usuário logado
 router.get("/vehicles", protect, async (req, res) => {
@@ -24,8 +27,10 @@ router.get("/public-vehicles", async (req, res) => {
 });
 
 // Adiciona um novo veículo
-router.post("/vehicles", protect, async (req, res) => {
+router.post("/vehicles", protect, checkRequestDelay(1500), async (req, res) => {
   try {
+    validateString(req.body.make, 'Make', 100);
+    validateString(req.body.model, 'Model', 100);
     const vehicleData = { ...req.body, owner: req.user._id };
     const newVehicle = new Vehicle(vehicleData);
     const savedVehicle = await newVehicle.save();
@@ -36,8 +41,11 @@ router.post("/vehicles", protect, async (req, res) => {
 });
 
 // Atualiza os dados principais de um veículo
-router.put("/vehicles/:id", protect, async (req, res) => {
+router.put("/vehicles/:id", protect, checkRequestDelay(1500), async (req, res) => {
   try {
+    validateString(req.body.make, 'Make', 100);
+    validateString(req.body.model, 'Model', 100);
+
     const vehicle = await Vehicle.findOne({ id: req.params.id, owner: req.user._id });
     if (!vehicle) return res.status(404).json({ error: "Veículo não encontrado ou não autorizado." });
 
@@ -103,20 +111,45 @@ router.get("/vehicles/:vehicleId/maintenance", protect, async (req, res) => {
     }
 });
 
-// Adiciona um novo registro de manutenção
 router.post("/vehicles/:vehicleId/maintenance", protect, async (req, res) => {
-    try {
-        const vehicle = await Vehicle.findOne({ id: req.params.vehicleId, owner: req.user._id });
-        if (!vehicle) return res.status(404).json({ error: "Veículo não encontrado ou não autorizado." });
-        
-        vehicle.maintenanceHistory.push(req.body);
-        vehicle.maintenanceHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        const updatedVehicle = await vehicle.save();
-        res.status(201).json(updatedVehicle);
-    } catch (err) {
-        res.status(500).json({ error: "Erro interno do servidor." });
+  try {
+    const { description, type, cost, date } = req.body;
+
+    // Validações
+    validateString(description, 'Description', 100);
+    validateString(type, 'Type', 100);
+
+    if (cost !== undefined) {
+      if (typeof cost !== 'number' || cost < 0) throw new Error('Cost deve ser um número positivo.');
+      if (cost > 1_000_000_000) throw new Error('Cost não pode ultrapassar 1 bilhão.');
     }
+
+    if (date && isNaN(Date.parse(date))) throw new Error('Date inválida.');
+
+    const vehicle = await Vehicle.findOne({ id: req.params.vehicleId, owner: req.user._id });
+    if (!vehicle) return res.status(404).json({ error: "Veículo não encontrado ou não autorizado." });
+
+    // Gera um id único para o registro de manutenção
+    const maintenanceItem = {
+      id: crypto.randomUUID(),
+      description,
+      type,
+      cost,
+      date,
+    };
+
+    vehicle.maintenanceHistory.push(maintenanceItem);
+    vehicle.maintenanceHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const updatedVehicle = await vehicle.save();
+    res.status(201).json(updatedVehicle);
+  } catch (err) {
+    if (err.message.startsWith('Description') || err.message.startsWith('Type') || err.message.startsWith('Cost') || err.message.startsWith('Date')) {
+      return res.status(400).json({ error: err.message });
+    }
+    console.log(err);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
 });
 
 // Atualiza um registro de manutenção específico
