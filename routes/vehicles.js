@@ -41,7 +41,7 @@ router.post("/vehicles", protect, checkRequestDelay(1500), async (req, res) => {
 });
 
 // Atualiza os dados principais de um veículo
-router.put("/vehicles/:id", protect, checkRequestDelay(1500), async (req, res) => {
+router.put("/vehicles/:id", protect, async (req, res) => {
   try {
     validateString(req.body.make, 'Make', 100);
     validateString(req.body.model, 'Model', 100);
