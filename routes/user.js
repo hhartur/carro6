@@ -43,4 +43,20 @@ router.put('/profile', protect, async (req, res) => {
     }
 });
 
+// Rota para encontrar um usuário pelo nome de usuário
+router.get('/find/:username', protect, async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.params.username.toLowerCase() });
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado.' });
+        }
+        res.json({
+            _id: user._id,
+            username: user.username
+        });
+    } catch (err) {
+        res.status(500).json({ error: "Erro interno do servidor." });
+    }
+});
+
 module.exports = router;

@@ -1,10 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const Vehicle = require("../models/Vehicle");
+const SharedVehicle = require("../models/SharedVehicle");
+const Friendship = require("../models/Friendship");
+const Notification = require("../models/Notification");
 const { protect } = require('../middleware/auth');
+<<<<<<< HEAD
 const { checkRequestDelay } = require('../lib/Security');
 const { validateString } = require('../lib/utils')
 const crypto = require('crypto'); 
+=======
+const { sendNotification } = require("../lib/websocket");
+>>>>>>> ac4e9a5 (teste)
 
 // Busca todos os veículos do usuário logado
 router.get("/vehicles", protect, async (req, res) => {
@@ -191,6 +198,91 @@ router.delete("/vehicles/:vehicleId/maintenance/:maintId", protect, async (req, 
 
         await vehicle.save();
         res.status(200).json({ message: "Registro de manutenção deletado com sucesso." });
+    } catch (err) {
+        res.status(500).json({ error: "Erro interno do servidor." });
+    }
+});
+
+// Rota para compartilhar um veiculo
+router.post("/vehicles/:id/share", protect, async (req, res) => {
+    try {
+        const vehicle = await Vehicle.findOne({ id: req.params.id, owner: req.user._id });
+        if (!vehicle) return res.status(404).json({ error: "Veículo não encontrado ou não autorizado." });
+
+        const { friendId } = req.body;
+        const ownerId = req.user._id;
+
+        const friendship = await Friendship.findOne({
+            $or: [
+                { requester: ownerId, recipient: friendId },
+                { requester: friendId, recipient: ownerId },
+            ],
+            status: "accepted",
+        });
+
+        if (!friendship) {
+            return res.status(400).json({ error: "Você só pode compartilhar veículos com amigos." });
+        }
+
+        const existingShare = await SharedVehicle.findOne({ vehicle: vehicle._id, sharedWith: friendId });
+        if (existingShare) {
+            return res.status(400).json({ error: "Este veículo já foi compartilhado com este usuário." });
+        }
+
+        const newShare = new SharedVehicle({
+            vehicle: vehicle._id,
+            owner: ownerId,
+            sharedWith: friendId,
+        });
+
+        await newShare.save();
+
+        // Salvar notificação no banco
+        const notification = new Notification({
+          user: friendId,
+          message: `${req.user.username} compartilhou um veículo com você.`,
+          type: 'VEHICLE_SHARED',
+          data: {
+            vehicleId: vehicle.id,
+            vehicleName: `${vehicle.make} ${vehicle.model}`,
+            owner: {
+              _id: req.user._id,
+              username: req.user.username
+            }
+          }
+        });
+        await notification.save();
+
+        sendNotification(friendId.toString(), {
+            type: 'VEHICLE_SHARED',
+            message: `${req.user.username} compartilhou um veículo com você.`,
+            data: {
+                vehicleId: vehicle.id,
+                vehicleName: `${vehicle.make} ${vehicle.model}`,
+                owner: {
+                    _id: req.user._id,
+                    username: req.user.username
+                }
+            }
+        });
+
+        res.status(201).json(newShare);
+
+    } catch (err) {
+        res.status(500).json({ error: "Erro interno do servidor." });
+    }
+});
+
+// Rota para buscar veiculos compartilhados com o usuario
+router.get("/vehicles/shared", protect, async (req, res) => {
+    try {
+        const sharedVehicles = await SharedVehicle.find({ sharedWith: req.user._id })
+            .populate({
+                path: 'vehicle',
+                populate: { path: 'owner', select: 'username' }
+            });
+
+        res.json(sharedVehicles.map(sv => sv.vehicle));
     } catch (err) {
         res.status(500).json({ error: "Erro interno do servidor." });
     }
