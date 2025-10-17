@@ -59,15 +59,44 @@
             <nav class="main-nav" aria-label="Navegação principal">
                 <ul>
                     <li><a href="#dashboard" class="nav-link" data-tab-target="dashboard" data-protected="true">📊 Dashboard</a></li>
-                    <li><a href="#garage" class="nav-link" data-tab-target="garage" data-protected="true">🚗 Minha Garagem</a></li>
-                    <li><a href="#public-garage" class="nav-link" data-tab-target="public-garage">🌍 Garagem Pública</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="nav-link" data-protected="true">🚗 Garagem</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#garage" class="nav-link" data-tab-target="garage" data-protected="true">Minha Garagem</a></li>
+                            <li><a href="#public-garage" class="nav-link" data-tab-target="public-garage">Garagem Pública</a></li>
+                            <li><a href="#shared-vehicles" class="nav-link" data-tab-target="shared-vehicles" data-protected="true">Veículos Compartilhados</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="nav-link" data-protected="true">🧑‍🤝‍🧑 Comunidade</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#friends" class="nav-link" data-tab-target="friends" data-protected="true">Amigos</a></li>
+                        </ul>
+                    </li>
                     <li><a href="#stats" class="nav-link" data-tab-target="stats" data-protected="true">📈 Estatísticas</a></li>
-                    <li><a href="#profile" class="nav-link" data-tab-target="profile" data-protected="true">👤 Perfil</a></li>
                 </ul>
             </nav>
-            <div id="user-display" style="display: none;">
-                <span class="username"></span>
-                <button id="logout-button" class="btn btn-secondary">Sair</button>
+            <div id="user-actions">
+                <div id="notification-bell" style="display: none;">
+                    <button id="notification-button" class="btn-icon">🔔</button>
+                    <div id="notification-counter">0</div>
+                    <div id="notification-center" class="notification-panel">
+                        <h3>Notificações</h3>
+                        <ul id="notification-list">
+                            <li class="empty-message">Nenhuma notificação.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="user-display" style="display: none;">
+                    <div class="profile-dropdown">
+                        <button id="profile-button" class="btn-icon">👤</button>
+                        <ul class="dropdown-menu profile-menu">
+                            <li><a href="#profile" class="nav-link" data-tab-target="profile" data-protected="true">Ver Perfil</a></li>
+                            <li><button id="logout-button" class="btn btn-secondary">Sair</button></li>
+                        </ul>
+                    </div>
+                    <span class="username"></span>
+                </div>
             </div>
         </div>
     </header>
@@ -167,6 +196,36 @@
             </section>
         </div>
 
+        <div id="tab-friends" class="tab-content" data-tab-content="friends">
+            <section class="card-section">
+                <h2><span class="section-icon">🧑‍🤝‍🧑</span> Amigos</h2>
+                <div id="friends-container"></div>
+            </section>
+            <section class="card-section">
+                <h2><span class="section-icon">➕</span> Adicionar Amigo</h2>
+                <form id="add-friend-form" class="form-section" autocomplete="off">
+                    <div class="form-group">
+                        <label for="friend-username">Nome de Usuário:</label>
+                        <input type="text" id="friend-username" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Adicionar</button>
+                </form>
+            </section>
+            <section class="card-section">
+                <h2><span class="section-icon">❓</span> Pedidos de Amizade</h2>
+                <div id="friend-requests-container"></div>
+            </section>
+        </div>
+
+        <div id="tab-shared-vehicles" class="tab-content" data-tab-content="shared-vehicles">
+            <section class="card-section">
+                <h2><span class="section-icon">🤝</span> Veículos Compartilhados Comigo</h2>
+                <div id="shared-vehicles-display" class="garage-grid">
+                    <p class="placeholder-text">Nenhum veículo compartilhado com você ainda.</p>
+                </div>
+            </section>
+        </div>
+
     </main>
 
     <footer class="main-footer" style="display: none;"> <p>© 2025 Smart Garage Nexus.</p> </footer>
@@ -197,6 +256,22 @@
                 <div class="dialog-buttons">
                     <button type="button" class="btn btn-secondary" id="cancel-edit-maint">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="share-modal-backdrop" class="confirmation-dialog-backdrop" style="display: none;">
+        <div id="share-modal" class="confirmation-dialog form-section">
+            <h3><span class="section-icon">🤝</span> Compartilhar Veículo</h3>
+            <form id="share-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="share-friend-search">Pesquisar Amigo:</label>
+                    <input type="text" id="share-friend-search" placeholder="Digite o nome de usuário...">
+                </div>
+                <ul id="share-friend-list" class="styled-list"></ul>
+                <div class="dialog-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancel-share">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -239,6 +314,13 @@
                             <label for="privacy-toggle" class="toggle-label"></label>
                         </div>
                         <span class="privacy-status">Privado</span>
+                    </div>
+                    <div class="share-control">
+                        <button class="btn btn-secondary btn-share-vehicle">Compartilhar</button>
+                        <div class="share-options" style="display: none;">
+                            <select class="friend-select"></select>
+                            <button class="btn btn-primary btn-confirm-share">Confirmar</button>
+                        </div>
                     </div>
                  </div>
                  
@@ -315,5 +397,11 @@
     <script src="js/models/Garage.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
+
+    <div id="chat-container" style="display: none;">
+        <div id="chat-header">Chat</div>
+        <div id="chat-messages"></div>
+        <input id="chat-input" type="text" placeholder="Digite uma mensagem...">
+    </div>
 </body>
 </html>

@@ -190,3 +190,197 @@ function configureForLoggedOutState() {
         link.style.opacity = '0.5';
     });
 }
+
+// --- API Functions ---
+
+async function apiGetUserByUsername(username) {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch(`/api/user/find/${username}`, {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao buscar usuário.");
+    }
+
+    return await response.json();
+}
+
+async function apiSendFriendRequest(recipientId) {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch("/api/friends/request", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userInfo.token}`
+        },
+        body: JSON.stringify({ recipientId })
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao enviar pedido de amizade.");
+    }
+
+    return await response.json();
+}
+
+async function apiGetFriendRequests() {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch("/api/friends/requests", {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao buscar pedidos de amizade.");
+    }
+
+    return await response.json();
+}
+
+async function apiAcceptFriendRequest(requestId) {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch(`/api/friends/request/${requestId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userInfo.token}`
+        },
+        body: JSON.stringify({ status: 'accepted' })
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao aceitar pedido de amizade.");
+    }
+
+    return await response.json();
+}
+
+async function apiDeclineFriendRequest(requestId) {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch(`/api/friends/request/${requestId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userInfo.token}`
+        },
+        body: JSON.stringify({ status: 'declined' })
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao recusar pedido de amizade.");
+    }
+
+    return await response.json();
+}
+
+async function apiGetFriends() {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch("/api/friends", {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao buscar amigos.");
+    }
+
+    return await response.json();
+}
+
+async function apiGetSharedVehicles() {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch("/api/vehicles/shared", {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao buscar veículos compartilhados.");
+    }
+
+    return await response.json();
+}
+
+async function apiShareVehicle(vehicleId, friendId) {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch(`/api/vehicles/${vehicleId}/share`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userInfo.token}`
+        },
+        body: JSON.stringify({ friendId })
+    });
+
+    return await response.json();
+}
+
+async function apiRemoveFriend(friendId) {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch(`/api/friends/${friendId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao remover amigo.");
+    }
+
+    return await response.json();
+}
+
+async function apiUpdateNickname(friendId, nickname) {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch(`/api/friends/${friendId}/nickname`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userInfo.token}`
+        },
+        body: JSON.stringify({ nickname })
+    });
+
+    return await response.json();
+}
+
+async function apiGetMessages(friendId) {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch(`/api/messages/${friendId}`, {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao buscar mensagens.");
+    }
+
+    return await response.json();
+}

@@ -14,11 +14,17 @@ const authRoutes = require('./routes/auth');
 const vehicleRoutes = require('./routes/vehicles');
 const weatherRoutes = require('./routes/weather');
 const userRoutes = require('./routes/user'); // Novo roteiro
+const friendRoutes = require('./routes/friends');
+const messageRoutes = require('./routes/messages');
+const notificationRoutes = require('./routes/notifications');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes); // Rota para o perfil do usuário
 app.use('/api', vehicleRoutes);
 app.use('/api', weatherRoutes);
+app.use('/api', friendRoutes);
+app.use('/api', messageRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -33,7 +39,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Ocorreu um erro inesperado no servidor.' });
 });
 
+const { initWebSocket } = require("./lib/websocket");
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
 });
+
+initWebSocket(server);
