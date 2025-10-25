@@ -4,7 +4,7 @@ const Friendship = require("../models/Friendship");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 const { protect } = require("../middleware/auth");
-const { sendNotification } = require("../lib/websocket");
+const { sendNotification } = require("../lib/notificationService");
 
 // Rota para enviar um pedido de amizade
 router.post("/friends/request", protect, async (req, res) => {
@@ -139,12 +139,12 @@ router.get("/friends", protect, async (req, res) => {
         if (friendship.requester._id.equals(userId)) {
             return {
                 ...friendship.recipient.toObject(),
-                nickname: friendship.requesterNickname
+                nickname: friendship.recipientNickname
             };
         } else {
             return {
                 ...friendship.requester.toObject(),
-                nickname: friendship.recipientNickname
+                nickname: friendship.requesterNickname
             };
         }
     });
@@ -189,7 +189,7 @@ router.delete("/friends/:id", protect, async (req, res) => {
             return res.status(404).json({ error: "Amizade não encontrada." });
         }
 
-        await friendship.remove();
+        await Friendship.deleteOne({ _id: friendship._id });
         res.json({ message: "Amigo removido com sucesso." });
 
     } catch (err) {

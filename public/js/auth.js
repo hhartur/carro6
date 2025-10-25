@@ -384,3 +384,53 @@ async function apiGetMessages(friendId) {
 
     return await response.json();
 }
+
+async function apiGetNotifications() {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch('/api/notifications', {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao buscar notificações.");
+    }
+
+    return await response.json();
+}
+
+async function apiMarkNotificationAsRead(notificationId) {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch(`/api/notifications/${notificationId}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao marcar notificação como lida.");
+    }
+
+    return await response.json();
+}
+
+async function apiMarkAllNotificationsAsRead() {
+    const userInfo = getUserInfo();
+    if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado.");
+
+    const response = await fetch('/api/notifications/read-all', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+    });
+
+    if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao marcar todas as notificações como lidas.");
+    }
+
+    return await response.json();
+}

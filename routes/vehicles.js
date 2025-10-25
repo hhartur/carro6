@@ -5,7 +5,7 @@ const SharedVehicle = require("../models/SharedVehicle");
 const Friendship = require("../models/Friendship");
 const Notification = require("../models/Notification");
 const { protect } = require('../middleware/auth');
-const { sendNotification } = require("../lib/websocket");
+const { sendNotification } = require("../lib/notificationService");
 
 // Busca todos os veículos do usuário logado
 router.get("/vehicles", protect, async (req, res) => {

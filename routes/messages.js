@@ -3,7 +3,7 @@ const router = express.Router();
 const Message = require("../models/Message");
 const Notification = require("../models/Notification");
 const { protect } = require("../middleware/auth");
-const { sendNotification } = require("../lib/websocket");
+
 
 // Rota para obter o histórico de mensagens com um amigo
 router.get("/messages/:friendId", protect, async (req, res) => {

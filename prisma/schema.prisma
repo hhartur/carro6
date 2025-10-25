@@ -1,0 +1,106 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                      String    @id @default(cuid())
+  username                String    @unique
+  email                   String    @unique
+  password                String
+  isVerified              Boolean   @default(false)
+  verificationCode        String?
+  verificationCodeExpires DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  vehicles                Vehicle[]
+  sentFriendRequests      Friendship[] @relation("sentFriendRequests")
+  receivedFriendRequests  Friendship[] @relation("receivedFriendRequests")
+  notifications           Notification[]
+  sentMessages            ChatMessage[]
+  chatParticipants        ChatParticipant[]
+  ownedChats              Chat[]
+  sharedVehicles          Vehicle[] @relation("SharedVehicles")
+}
+
+model Vehicle {
+  id            String    @id @default(cuid())
+  make          String
+  model         String
+  year          Int
+  type          String
+  status        String    @default("off")
+  speed         Int       @default(0)
+  turboOn       Boolean?
+  maxLoad       Int?
+  currentLoad   Int?
+  valorFipeEstimado      Float?
+  recallPendente         Boolean?
+  ultimaRevisaoRecomendadaKm Int?
+  dicaManutencao         String?
+  ownerId       String
+  isPublic      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  owner         User      @relation(fields: [ownerId], references: [id])
+  sharedWith    User[]    @relation("SharedVehicles")
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  senderId  String
+  receiverId String
+  status    String   @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sender    User     @relation("sentFriendRequests", fields: [senderId], references: [id])
+  receiver  User     @relation("receivedFriendRequests", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Chat {
+  id           String            @id @default(cuid())
+  name         String?
+  isGroup      Boolean           @default(false)
+  creatorId    String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  creator      User              @relation(fields: [creatorId], references: [id])
+  messages     ChatMessage[]
+  participants ChatParticipant[]
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  chatId    String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  sender    User     @relation(fields: [senderId], references: [id])
+}
+
+model ChatParticipant {
+  id        String   @id @default(cuid())
+  chatId    String
+  userId    String
+  createdAt DateTime @default(now())
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([chatId, userId])
+}

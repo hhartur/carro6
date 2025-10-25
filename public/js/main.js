@@ -80,8 +80,13 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log(
       "[Init 1.4] User authenticated. Loading initial data from API..."
     );
-    const loadSuccess = await garage.loadFromAPI();
-    if (!loadSuccess) {
+    // Load garage and notifications in parallel
+    const [garageLoadSuccess, ] = await Promise.all([
+        garage.loadFromAPI(),
+        loadNotifications()
+    ]);
+
+    if (!garageLoadSuccess) {
       showNotification(
         "Falha ao carregar dados da garagem. Tente recarregar a página.",
         "error",
@@ -111,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!userInfo || !userInfo.token) return;
 
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${wsProtocol}//${window.location.host}`;
+    const wsUrl = `${wsProtocol}//${window.location.hostname}:3001`;
 
     ws = new WebSocket(wsUrl);
 
@@ -154,8 +159,21 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  async function loadNotifications() {
+    try {
+      const fetchedNotifications = await apiGetNotifications();
+      notifications = fetchedNotifications;
+      renderNotificationCenter();
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+    }
+  }
+
   function handleIncomingNotification(notification) {
-    notifications.unshift(notification); // Adiciona no início
+    // Check if notification already exists
+    if (!notifications.find(n => n._id === notification._id)) {
+        notifications.unshift(notification); // Adiciona no início
+    }
     renderNotificationCenter();
     showNotification(notification.message, "info");
 
@@ -175,6 +193,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function handleMarkAsRead(notification) {
+    if (notification.read) return;
+
+    try {
+      await apiMarkNotificationAsRead(notification._id);
+      notification.read = true;
+      renderNotificationCenter();
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  }
+
+  async function handleMarkAllAsRead() {
+    try {
+      await apiMarkAllNotificationsAsRead();
+      notifications.forEach(n => n.read = true);
+      renderNotificationCenter();
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+  }
+
   function toggleNotificationCenter() {
     notificationCenter.classList.toggle("visible");
   }
@@ -191,9 +231,18 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Add "Mark all as read" button
+    const markAllReadButton = document.createElement('button');
+    markAllReadButton.className = 'btn btn-secondary btn-sm mark-all-read';
+    markAllReadButton.textContent = 'Marcar todas como lidas';
+    markAllReadButton.addEventListener('click', handleMarkAllAsRead);
+    notificationList.appendChild(markAllReadButton);
+
+
     notifications.forEach((notification) => {
       const li = document.createElement("li");
       li.classList.add("notification-item");
+      li.dataset.id = notification._id;
       if (notification.read) {
         li.classList.add("read");
       }
@@ -210,18 +259,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       li.innerHTML = `<p>${notification.message}</p>${actions}`;
 
+      li.addEventListener('click', () => handleMarkAsRead(notification));
+
       if (notification.type === "FRIEND_REQUEST") {
         li.querySelector(".btn-success").addEventListener("click", (e) => {
           e.stopPropagation();
           handleAcceptFriendRequest(notification.data.requestId);
-          notification.read = true;
-          renderNotificationCenter();
+          handleMarkAsRead(notification);
         });
         li.querySelector(".btn-danger").addEventListener("click", (e) => {
           e.stopPropagation();
           handleDeclineFriendRequest(notification.data.requestId);
-          notification.read = true;
-          renderNotificationCenter();
+          handleMarkAsRead(notification);
         });
       }
       notificationList.appendChild(li);
