@@ -115,8 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const userInfo = getUserInfo();
     if (!userInfo || !userInfo.token) return;
 
-    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${wsProtocol}//${window.location.hostname}:3001`;
+    const wsUrl = "wss://carro6.onrender.com";
 
     ws = new WebSocket(wsUrl);
 
