@@ -1213,6 +1213,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const fragment = document.createDocumentFragment();
     vehicleList.forEach((v) => {
+      if(!v) return;
       const card = createVehicleCard(v, isPublic, isShared);
       if (selectedVehicle?.id === v.id) card.classList.add("selected");
       fragment.appendChild(card);
