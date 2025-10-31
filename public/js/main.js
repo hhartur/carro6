@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!userInfo || !userInfo.token) return;
 
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${wsProtocol}//localhost:3001`;
+    const wsUrl = `${wsProtocol}//carro6222.vercel.app`;
 
     ws = new WebSocket(wsUrl);
 
