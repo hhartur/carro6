@@ -121,9 +121,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const socketUrl = "https://carro6222.vercel.app";
 
     // Conecta-se ao servidor Socket.IO
-    socket = io(socketUrl, {
-      transports: ["polling", "websocket"], // Garante compatibilidade com Vercel
-    });
+    const socket = io(socketUrl, {
+  transports: ["polling"], // garante compatibilidade com Vercel
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+});
+
+
 
     // Evento disparado ao conectar
     socket.on("connect", () => {
