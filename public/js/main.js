@@ -1,3 +1,6 @@
+// Adicione a biblioteca cliente do Socket.IO ao seu HTML antes deste script.
+// Ex: <script src="/socket.io/socket.io.js"></script> ou de um CDN.
+
 document.addEventListener("DOMContentLoaded", () => {
   console.log(
     "[Init 0.1] DOMContentLoaded. Initializing Smart Garage Nexus v11.0 (Profile & Maint-CRUD)..."
@@ -11,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isPublicGarageView = false;
   let notifications = [];
   let currentChatFriend = null;
-  let ws = null;
+  let socket = null; // Alterado de ws para socket
 
   const OPENWEATHERMAP_ICON_URL_PREFIX = "https://openweathermap.org/img/wn/";
 
@@ -64,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       console.log("[Init 1.2] No user token found. Setting public view.");
       document.querySelectorAll(".dropdown a").forEach((link) => {
-        if(link.classList.contains('immune')) return;
+        if (link.classList.contains("immune")) return;
         if (link.dataset.protected === "true") {
           link.setAttribute("disabled", "true");
           link.style.cursor = "not-allowed";
@@ -104,56 +107,105 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log(
       "[Init COMPLETE] === Smart Garage Nexus initialization finished ==="
     );
-    initWebSocket();
+    initSocketIO(); // Alterado de initWebSocket para initSocketIO
   }
 
-  function initWebSocket() {
+  // --- INÍCIO DA SEÇÃO REFATORADA PARA SOCKET.IO ---
+
+  function initSocketIO() {
     const userInfo = getUserInfo();
     if (!userInfo || !userInfo.token) return;
 
-    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${wsProtocol}//carro6222.vercel.app`;
+    // A URL base para o servidor Socket.IO.
+    // O cliente Socket.IO gerencia os protocolos (http/https) automaticamente.
+    const socketUrl = "https://carro6222.vercel.app";
 
-    ws = new WebSocket(wsUrl);
+    // Conecta-se ao servidor Socket.IO
+    socket = io(socketUrl, {
+      transports: ["polling", "websocket"], // Garante compatibilidade com Vercel
+    });
 
-    ws.onopen = () => {
-      console.log("Conexão WebSocket estabelecida.");
-      ws.send(JSON.stringify({ type: "AUTH", token: userInfo.token }));
-    };
+    // Evento disparado ao conectar
+    socket.on("connect", () => {
+      console.log("🧩 Conectado ao servidor Socket.IO. Autenticando...");
+      // Emite o evento de autenticação com o token, conforme esperado pelo backend
+      socket.emit("authenticate", userInfo.token);
+    });
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "CHAT_MESSAGE") {
-          if (
-            currentChatFriend &&
-            (data.payload.sender === currentChatFriend._id ||
-              data.payload.recipient === currentChatFriend._id)
-          ) {
-            renderMessages(null, data.payload);
-          }
-          showNotification(
-            `Nova mensagem de ${data.payload.sender.username}`,
-            "info"
-          );
-        } else {
-          handleIncomingNotification(data);
-        }
-      } catch (error) {
-        console.error("Erro ao processar notificação:", error);
+    // Evento para confirmar que a autenticação foi bem-sucedida
+    socket.on("authenticated", () => {
+      console.log("✅ Cliente autenticado com sucesso via Socket.IO.");
+    });
+
+    // Evento para lidar com falhas de autenticação
+    socket.on("unauthorized", () => {
+      console.error("❌ Falha na autenticação do Socket.IO. Desconectando.");
+      showNotification(
+        "Sessão inválida. Por favor, faça login novamente.",
+        "error"
+      );
+      // Aqui você poderia adicionar uma lógica para deslogar o usuário
+    });
+
+    // Listener para novas mensagens de chat
+    socket.on("chat_message", (message) => {
+      // O backend envia o objeto da mensagem diretamente
+      const senderId = message.sender; // O backend envia o ID do remetente
+      let senderUsername = "um amigo";
+
+      // Se a janela de chat com este amigo estiver aberta, podemos usar o nome dele
+      if (currentChatFriend && senderId === currentChatFriend._id) {
+        senderUsername = currentChatFriend.username;
+        renderMessages(null, message); // Renderiza a mensagem na janela aberta
       }
-    };
 
-    ws.onclose = () => {
-      console.log("Conexão WebSocket fechada. Tentando reconectar em 5s...");
-      setTimeout(initWebSocket, 5000);
-    };
+      showNotification(`Nova mensagem de ${senderUsername}`, "info");
+    });
 
-    ws.onerror = (error) => {
-      console.error("Erro no WebSocket:", error);
-      ws.close();
-    };
+    // Listener para outras notificações genéricas
+    socket.on("notification", (notification) => {
+      handleIncomingNotification(notification);
+    });
+
+    // Evento para lidar com a desconexão
+    socket.on("disconnect", () => {
+      console.log("❌ Desconectado do servidor Socket.IO. Tentando reconectar...");
+      // A reconexão é gerenciada automaticamente pelo Socket.IO
+    });
+
+    // Evento para lidar com erros de conexão
+    socket.on("connect_error", (error) => {
+      console.error("Erro de conexão com o Socket.IO:", error);
+    });
   }
+
+  function handleSendMessage(event) {
+    if (event.key === "Enter" && chatInput.value.trim() !== "" && socket) {
+      const messageContent = chatInput.value.trim();
+
+      // Estrutura de dados que o backend `socket.js` espera
+      const messagePayload = {
+        recipientId: currentChatFriend._id,
+        content: messageContent,
+      };
+
+      // Emite o evento 'chat_message' para o servidor
+      socket.emit("chat_message", messagePayload);
+
+      // Otimização de UI: renderiza a mensagem enviada imediatamente
+      // sem esperar o retorno do servidor.
+      const localMessage = {
+        content: messageContent,
+        sender: getUserInfo()._id,
+        recipient: currentChatFriend._id,
+      };
+      renderMessages(null, localMessage);
+
+      chatInput.value = "";
+    }
+  }
+
+  // --- FIM DA SEÇÃO REFATORADA PARA SOCKET.IO ---
 
   function handleIncomingNotification(notification) {
     notifications.unshift(notification); // Adiciona no início
@@ -180,15 +232,21 @@ document.addEventListener("DOMContentLoaded", () => {
     notificationCenter.classList.toggle("visible");
     if (notificationCenter.classList.contains("visible")) {
       // Mark all unread notifications as read when opening the center
-      const unreadNotifications = notifications.filter(n => !n.read);
+      const unreadNotifications = notifications.filter((n) => !n.read);
       if (unreadNotifications.length > 0) {
         try {
           await apiMarkAllNotificationsAsRead();
-          notifications.forEach(n => n.read = true); // Update local state
+          notifications.forEach((n) => (n.read = true)); // Update local state
           renderNotificationCenter();
         } catch (error) {
-          console.error("Erro ao marcar todas as notificações como lidas:", error);
-          showNotification("Erro ao marcar notificações como lidas.", "error");
+          console.error(
+            "Erro ao marcar todas as notificações como lidas:",
+            error
+          );
+          showNotification(
+            "Erro ao marcar notificações como lidas.",
+            "error"
+          );
         }
       }
     }
@@ -227,27 +285,35 @@ document.addEventListener("DOMContentLoaded", () => {
       li.innerHTML = `<p>${notification.message}</p>${actions}`;
 
       // Mark as read when clicked (unless it's a friend request action button)
-      li.addEventListener('click', async (e) => {
-        if (!notification.read && !e.target.closest('.actions')) {
+      li.addEventListener("click", async (e) => {
+        if (!notification.read && !e.target.closest(".actions")) {
           try {
             await apiMarkNotificationAsRead(notification._id);
             notification.read = true;
             renderNotificationCenter(); // Re-render to update UI
           } catch (error) {
             console.error("Erro ao marcar notificação como lida:", error);
-            showNotification("Erro ao marcar notificação como lida.", "error");
+            showNotification(
+              "Erro ao marcar notificação como lida.",
+              "error"
+            );
           }
         }
       });
 
       if (notification.type === "FRIEND_REQUEST") {
-        li.querySelector(".btn-success").addEventListener("click", async (e) => { // Added async
-          e.stopPropagation();
-          await handleAcceptFriendRequest(notification.data.requestId); // Added await
-          notification.read = true;
-          renderNotificationCenter();
-        });
-        li.querySelector(".btn-danger").addEventListener("click", async (e) => { // Added async
+        li.querySelector(".btn-success").addEventListener(
+          "click",
+          async (e) => {
+            // Added async
+            e.stopPropagation();
+            await handleAcceptFriendRequest(notification.data.requestId); // Added await
+            notification.read = true;
+            renderNotificationCenter();
+          }
+        );
+        li.querySelector(".btn-danger").addEventListener("click", async (e) => {
+          // Added async
           e.stopPropagation();
           await handleDeclineFriendRequest(notification.data.requestId); // Added await
           notification.read = true;
@@ -258,64 +324,68 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-      function setupEventListeners() {
-          // Dropdown Toggles
-          document.querySelectorAll('.dropdown > a').forEach(dropdownToggle => {
-              dropdownToggle.addEventListener('click', (e) => {
-                  e.preventDefault();
-                  const parentDropdown = dropdownToggle.closest('.dropdown');
-                  parentDropdown.classList.toggle('active');
-              });
-          });
-  
-          document.querySelector('.profile-dropdown > button').addEventListener('click', (e) => {
-              e.preventDefault();
-              const profileDropdown = document.querySelector('.profile-dropdown');
-              profileDropdown.classList.toggle('active');
-          });
-  
-          // Close dropdowns when clicking outside
-          document.addEventListener('click', (e) => {
-              document.querySelectorAll('.dropdown.active, .profile-dropdown.active').forEach(openDropdown => {
-                  if (!openDropdown.contains(e.target)) {
-                      openDropdown.classList.remove('active');
-                  }
-              });
-          });
-  
-          mainNav?.addEventListener("click", (e) => {
-              const link = e.target.closest(".nav-link[data-tab-target]");
-              if (link) {
-                  e.preventDefault();
-                  if (link.hasAttribute("disabled")) {
-                      showNotification(
-                          "Você precisa fazer login para acessar esta área.",
-                          "warning"
-                      );
-                      return;
-                  }
-                  setActiveTab(link.dataset.tabTarget);
-              }
-          });    
-          
-          const addVehicleImageInput = getElemById("vehicle-image");
-          const addVehicleImagePreview = getElemById("vehicle-image-preview");
+  function setupEventListeners() {
+    // Dropdown Toggles
+    document.querySelectorAll(".dropdown > a").forEach((dropdownToggle) => {
+      dropdownToggle.addEventListener("click", (e) => {
+        e.preventDefault();
+        const parentDropdown = dropdownToggle.closest(".dropdown");
+        parentDropdown.classList.toggle("active");
+      });
+    });
 
-          addVehicleImageInput?.addEventListener("change", function() {
-            if (this.files && this.files[0]) {
-              const reader = new FileReader();
-              reader.onload = function(e) {
-                addVehicleImagePreview.src = e.target.result;
-                addVehicleImagePreview.style.display = "block";
-              };
-              reader.readAsDataURL(this.files[0]);
-            } else {
-              addVehicleImagePreview.src = "#";
-              addVehicleImagePreview.style.display = "none";
-            }
-          });
+    document
+      .querySelector(".profile-dropdown > button")
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        const profileDropdown = document.querySelector(".profile-dropdown");
+        profileDropdown.classList.toggle("active");
+      });
 
-          vehicleTypeSelect?.addEventListener("change", (e) => {
+    // Close dropdowns when clicking outside
+    document.addEventListener("click", (e) => {
+      document
+        .querySelectorAll(".dropdown.active, .profile-dropdown.active")
+        .forEach((openDropdown) => {
+          if (!openDropdown.contains(e.target)) {
+            openDropdown.classList.remove("active");
+          }
+        });
+    });
+
+    mainNav?.addEventListener("click", (e) => {
+      const link = e.target.closest(".nav-link[data-tab-target]");
+      if (link) {
+        e.preventDefault();
+        if (link.hasAttribute("disabled")) {
+          showNotification(
+            "Você precisa fazer login para acessar esta área.",
+            "warning"
+          );
+          return;
+        }
+        setActiveTab(link.dataset.tabTarget);
+      }
+    });
+
+    const addVehicleImageInput = getElemById("vehicle-image");
+    const addVehicleImagePreview = getElemById("vehicle-image-preview");
+
+    addVehicleImageInput?.addEventListener("change", function () {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          addVehicleImagePreview.src = e.target.result;
+          addVehicleImagePreview.style.display = "block";
+        };
+        reader.readAsDataURL(this.files[0]);
+      } else {
+        addVehicleImagePreview.src = "#";
+        addVehicleImagePreview.style.display = "none";
+      }
+    });
+
+    vehicleTypeSelect?.addEventListener("change", (e) => {
       const showTruck = e.target.value === "Truck";
       truckSpecificFields?.classList.toggle("visible", showTruck);
       getElemById("truck-max-load").required = showTruck;
@@ -361,16 +431,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const formData = new FormData();
-    formData.append('_type', type);
+    formData.append("_type", type);
 
-    formData.append('make', make);
-    formData.append('model', model);
-    formData.append('year', year);
-    if (type === 'Truck') {
-      formData.append('maxLoad', maxLoad);
+    formData.append("make", make);
+    formData.append("model", model);
+    formData.append("year", year);
+    if (type === "Truck") {
+      formData.append("maxLoad", maxLoad);
     }
     if (imageInput && imageInput.files[0]) {
-      formData.append('image', imageInput.files[0]);
+      formData.append("image", imageInput.files[0]);
     }
 
     try {
@@ -381,7 +451,9 @@ document.addEventListener("DOMContentLoaded", () => {
         vehicleTypeSelect.value = "";
         truckSpecificFields?.classList.remove("visible");
         // Clear image preview
-        const imagePreview = addVehicleForm.querySelector("#vehicle-image-preview");
+        const imagePreview = addVehicleForm.querySelector(
+          "#vehicle-image-preview"
+        );
         if (imagePreview) {
           imagePreview.src = "#";
           imagePreview.style.display = "none";
@@ -451,7 +523,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (newMessage) {
       const messageEl = document.createElement("div");
       messageEl.classList.add("message");
-      if (newMessage.sender === getUserInfo()._id) {
+      // O 'sender' pode ser um ID (do backend) ou um objeto (do frontend)
+      const senderId =
+        typeof newMessage.sender === "object"
+          ? newMessage.sender._id
+          : newMessage.sender;
+
+      if (senderId === getUserInfo()._id) {
         messageEl.classList.add("sent");
       } else {
         messageEl.classList.add("received");
@@ -473,20 +551,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
     chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-
-  function handleSendMessage(event) {
-    if (event.key === "Enter" && chatInput.value.trim() !== "") {
-      const message = {
-        type: "CHAT_MESSAGE",
-        payload: {
-          recipientId: currentChatFriend._id,
-          content: chatInput.value.trim(),
-        },
-      };
-      ws.send(JSON.stringify(message));
-      chatInput.value = "";
-    }
   }
 
   async function renderFriendsList() {
@@ -1213,7 +1277,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const fragment = document.createDocumentFragment();
     vehicleList.forEach((v) => {
-      if(!v) return;
+      if (!v) return;
       const card = createVehicleCard(v, isPublic, isShared);
       if (selectedVehicle?.id === v.id) card.classList.add("selected");
       fragment.appendChild(card);
@@ -1247,14 +1311,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const vehicleImageHtml = vehicle.imageUrl
       ? `<img src="${vehicle.imageUrl}" alt="${vehicle.make} ${vehicle.model}" class="vehicle-card-image">`
-      : '';
+      : "";
 
     card.innerHTML = `
       <div class="card-header-content">
         ${vehicleImageHtml}
         <div>
           <h4>${vehicle.make} ${vehicle.model}</h4>
-          <p>${vehicle.year} - ${vehicle._type.replace(/([A-Z])/g, " $1").trim()}</p>
+          <p>${vehicle.year} - ${vehicle._type
+      .replace(/([A-Z])/g, " $1")
+      .trim()}</p>
           ${ownerInfo}
         </div>
       </div>
@@ -1330,7 +1396,11 @@ document.addEventListener("DOMContentLoaded", () => {
     renderDetailsAreaContent(selectedVehicle, isPublic, isShared);
   }
 
-  async function renderDetailsAreaContent(vehicle, isPublic, isShared = false) {
+  async function renderDetailsAreaContent(
+    vehicle,
+    isPublic,
+    isShared = false
+  ) {
     isContentSwapping = true;
     detailsContentArea.innerHTML = "";
     if (vehicle) {
@@ -1381,37 +1451,37 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     setTxt(".details-title", `${vehicle.make} ${vehicle.model}`);
-    
+
     const vehicleInfoBlock = wrapper.querySelector(".vehicle-info");
     if (vehicleInfoBlock) {
-        vehicleInfoBlock.innerHTML = ''; // Clear existing content
+      vehicleInfoBlock.innerHTML = ""; // Clear existing content
 
-        if (vehicle.imageUrl) {
-            const imgElement = document.createElement('img');
-            imgElement.src = vehicle.imageUrl;
-            imgElement.alt = `Imagem de ${vehicle.make} ${vehicle.model}`;
-            imgElement.classList.add('vehicle-detail-image');
-            vehicleInfoBlock.appendChild(imgElement);
-        }
+      if (vehicle.imageUrl) {
+        const imgElement = document.createElement("img");
+        imgElement.src = vehicle.imageUrl;
+        imgElement.alt = `Imagem de ${vehicle.make} ${vehicle.model}`;
+        imgElement.classList.add("vehicle-detail-image");
+        vehicleInfoBlock.appendChild(imgElement);
+      }
 
-        let infoHTML = `<strong>Ano:</strong> ${
-            vehicle.year
-        }<br><strong>Tipo:</strong> ${vehicle._type
-            .replace(/([A-Z])/g, " $1")
-            .trim()}`;
-        if (isPublic || isShared) {
-            infoHTML += `<br><strong>Dono:</strong> ${
-                vehicle.owner?.username || "Anônimo"
-            }`;
-        } else {
-            infoHTML += `<br><strong title="ID: ${
-                vehicle.id
-            }">ID:</strong> <span class="code">...${vehicle.id.slice(-6)}</span>`;
-        }
-        
-        const infoDiv = document.createElement('div');
-        infoDiv.innerHTML = infoHTML;
-        vehicleInfoBlock.appendChild(infoDiv);
+      let infoHTML = `<strong>Ano:</strong> ${
+        vehicle.year
+      }<br><strong>Tipo:</strong> ${vehicle._type
+        .replace(/([A-Z])/g, " $1")
+        .trim()}`;
+      if (isPublic || isShared) {
+        infoHTML += `<br><strong>Dono:</strong> ${
+          vehicle.owner?.username || "Anônimo"
+        }`;
+      } else {
+        infoHTML += `<br><strong title="ID: ${
+          vehicle.id
+        }">ID:</strong> <span class="code">...${vehicle.id.slice(-6)}</span>`;
+      }
+
+      const infoDiv = document.createElement("div");
+      infoDiv.innerHTML = infoHTML;
+      vehicleInfoBlock.appendChild(infoDiv);
     }
 
     const isReadOnly = isPublic || isShared;
@@ -1616,28 +1686,30 @@ document.addEventListener("DOMContentLoaded", () => {
     addListener(".api-details-edit-form", "submit", handleSaveVehicleDetails);
 
     const editVehicleImageInput = wrapper.querySelector("#edit-vehicle-image");
-    const editVehicleImagePreview = wrapper.querySelector("#edit-vehicle-image-preview");
+    const editVehicleImagePreview = wrapper.querySelector(
+      "#edit-vehicle-image-preview"
+    );
 
     if (editVehicleImageInput && editVehicleImagePreview) {
-        editVehicleImageInput.addEventListener("change", function() {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    editVehicleImagePreview.src = e.target.result;
-                    editVehicleImagePreview.style.display = "block";
-                };
-                reader.readAsDataURL(this.files[0]);
-            } else {
-                editVehicleImagePreview.src = "#";
-                editVehicleImagePreview.style.display = "none";
-            }
-        });
-
-        // Display existing image if available
-        if (selectedVehicle.imageUrl) {
-            editVehicleImagePreview.src = selectedVehicle.imageUrl;
+      editVehicleImageInput.addEventListener("change", function () {
+        if (this.files && this.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            editVehicleImagePreview.src = e.target.result;
             editVehicleImagePreview.style.display = "block";
+          };
+          reader.readAsDataURL(this.files[0]);
+        } else {
+          editVehicleImagePreview.src = "#";
+          editVehicleImagePreview.style.display = "none";
         }
+      });
+
+      // Display existing image if available
+      if (selectedVehicle.imageUrl) {
+        editVehicleImagePreview.src = selectedVehicle.imageUrl;
+        editVehicleImagePreview.style.display = "block";
+      }
     }
   }
 
@@ -1775,7 +1847,8 @@ document.addEventListener("DOMContentLoaded", () => {
       vehicle.dicaManutencao || "";
   }
 
-  async function handleSaveVehicleDetails(event) { // Renamed from handleSaveApiDetails
+  async function handleSaveVehicleDetails(event) {
+    // Renamed from handleSaveApiDetails
     event.preventDefault();
     if (!selectedVehicle) return;
 
@@ -1788,38 +1861,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Append existing vehicle data (excluding sensitive fields like owner, maintenanceHistory)
     // and new API details data
-    formData.append('make', selectedVehicle.make);
-    formData.append('model', selectedVehicle.model);
-    formData.append('year', selectedVehicle.year);
-    formData.append('_type', selectedVehicle._type);
-    formData.append('status', selectedVehicle.status);
-    formData.append('speed', selectedVehicle.speed);
-    if (selectedVehicle._type === 'SportsCar') {
-        formData.append('turboOn', selectedVehicle.turboOn);
+    formData.append("make", selectedVehicle.make);
+    formData.append("model", selectedVehicle.model);
+    formData.append("year", selectedVehicle.year);
+    formData.append("_type", selectedVehicle._type);
+    formData.append("status", selectedVehicle.status);
+    formData.append("speed", selectedVehicle.speed);
+    if (selectedVehicle._type === "SportsCar") {
+      formData.append("turboOn", selectedVehicle.turboOn);
     }
-    if (selectedVehicle._type === 'Truck') {
-        formData.append('maxLoad', selectedVehicle.maxLoad);
-        formData.append('currentLoad', selectedVehicle.currentLoad);
+    if (selectedVehicle._type === "Truck") {
+      formData.append("maxLoad", selectedVehicle.maxLoad);
+      formData.append("currentLoad", selectedVehicle.currentLoad);
     }
-    formData.append('isPublic', selectedVehicle.isPublic);
+    formData.append("isPublic", selectedVehicle.isPublic);
 
     // Append API details data
-    formData.append('valorFipeEstimado', form.querySelector(".edit-fipe-value").value || '');
-    formData.append('ultimaRevisaoRecomendadaKm', form.querySelector(".edit-revision-km").value || '');
-    formData.append('recallPendente', form.querySelector(".edit-recall-status").value);
-    formData.append('dicaManutencao', form.querySelector(".edit-maintenance-tip").value.trim());
+    formData.append(
+      "valorFipeEstimado",
+      form.querySelector(".edit-fipe-value").value || ""
+    );
+    formData.append(
+      "ultimaRevisaoRecomendadaKm",
+      form.querySelector(".edit-revision-km").value || ""
+    );
+    formData.append(
+      "recallPendente",
+      form.querySelector(".edit-recall-status").value
+    );
+    formData.append(
+      "dicaManutencao",
+      form.querySelector(".edit-maintenance-tip").value.trim()
+    );
 
     // Append image if selected
     if (editVehicleImageInput && editVehicleImageInput.files[0]) {
-      formData.append('image', editVehicleImageInput.files[0]);
+      formData.append("image", editVehicleImageInput.files[0]);
     } else if (selectedVehicle.imageUrl && !editVehicleImageInput.files[0]) {
-        // If there was an image but no new one is selected, keep the old one
-        formData.append('imageUrl', selectedVehicle.imageUrl);
+      // If there was an image but no new one is selected, keep the old one
+      formData.append("imageUrl", selectedVehicle.imageUrl);
     } else if (!selectedVehicle.imageUrl && !editVehicleImageInput.files[0]) {
-        // If there was no image and no new one is selected, ensure imageUrl is empty
-        formData.append('imageUrl', '');
+      // If there was no image and no new one is selected, ensure imageUrl is empty
+      formData.append("imageUrl", "");
     }
-
 
     setLoadingState(button, true, "Salvando...");
     try {
@@ -1840,7 +1924,10 @@ document.addEventListener("DOMContentLoaded", () => {
       toggleApiDetailsEditMode(wrapper, false);
       showNotification("Dados do veículo salvos com sucesso!", "success");
     } catch (error) {
-      showNotification(`Erro ao salvar dados do veículo: ${error.message}`, "error");
+      showNotification(
+        `Erro ao salvar dados do veículo: ${error.message}`,
+        "error"
+      );
     } finally {
       setLoadingState(button, false, "Salvar");
     }
