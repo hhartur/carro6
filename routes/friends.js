@@ -4,7 +4,7 @@ const Friendship = require("../models/Friendship");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 const { protect } = require("../middleware/auth");
-const { sendNotification } = require("../lib/websocket");
+const {sendNotification} = require("../lib/socket");
 
 // Rota para enviar um pedido de amizade
 router.post("/friends/request", protect, async (req, res) => {
