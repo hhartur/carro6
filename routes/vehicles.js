@@ -6,6 +6,12 @@ const Friendship = require("../models/Friendship");
 const Notification = require("../models/Notification");
 const { protect } = require('../middleware/auth');
 const { sendNotification } = require("../lib/websocket");
+const multer = require('multer'); // Import multer
+const imagekitModule = require('../lib/imagekit'); // Import the entire module
+const uploadImage = imagekitModule.uploadImage;
+const deleteImage = imagekitModule.deleteImage;
+
+const upload = multer({ storage: multer.memoryStorage() }); // Configure multer for memory storage
 
 // Busca todos os veículos do usuário logado
 router.get("/vehicles", protect, async (req, res) => {
@@ -28,9 +34,16 @@ router.get("/public-vehicles", async (req, res) => {
 });
 
 // Adiciona um novo veículo
-router.post("/vehicles", protect, async (req, res) => {
+router.post("/vehicles", protect, upload.single('image'), async (req, res) => {
   try {
     const vehicleData = { ...req.body, owner: req.user._id };
+
+    if (req.file) {
+      const uploadResult = await uploadImage(req.file.buffer, req.file.originalname, 'vehicles');
+      vehicleData.imageUrl = uploadResult.url;
+      vehicleData.imageId = uploadResult.fileId;
+    }
+
     const newVehicle = new Vehicle(vehicleData);
     const savedVehicle = await newVehicle.save();
     res.status(201).json(savedVehicle);
@@ -40,7 +53,7 @@ router.post("/vehicles", protect, async (req, res) => {
 });
 
 // Atualiza os dados principais de um veículo
-router.put("/vehicles/:id", protect, async (req, res) => {
+router.put("/vehicles/:id", protect, upload.single('image'), async (req, res) => {
   try {
     const vehicle = await Vehicle.findOne({ id: req.params.id, owner: req.user._id });
     if (!vehicle) return res.status(404).json({ error: "Veículo não encontrado ou não autorizado." });
@@ -49,10 +62,29 @@ router.put("/vehicles/:id", protect, async (req, res) => {
     delete req.body.owner;
     delete req.body.maintenanceHistory; 
 
-    const updatedVehicle = await Vehicle.findByIdAndUpdate(vehicle._id, req.body, { new: true, runValidators: true });
+    const updateData = { ...req.body };
+
+    if (req.file) {
+      // If a new image is uploaded, delete the old one if it exists
+      if (vehicle.imageId) {
+        await deleteImage(vehicle.imageId);
+      }
+      const uploadResult = await uploadImage(req.file.buffer, req.file.originalname, 'vehicles');
+      updateData.imageUrl = uploadResult.url;
+      updateData.imageId = uploadResult.fileId;
+    } else if (req.body.imageUrl === '') { // Allow clearing the image
+      // If imageUrl is explicitly set to empty, delete the old image if it exists
+      if (vehicle.imageId) {
+        await deleteImage(vehicle.imageId);
+      }
+      updateData.imageUrl = '';
+      updateData.imageId = ''; // Clear imageId as well
+    }
+
+    const updatedVehicle = await Vehicle.findByIdAndUpdate(vehicle._id, updateData, { new: true, runValidators: true });
     res.json(updatedVehicle);
   } catch (err) {
-    res.status(500).json({ error: "Erro interno do servidor." });
+    res.status(500).json({ error: err.message || "Erro interno do servidor." });
   }
 });
 
@@ -87,9 +119,19 @@ router.delete("/vehicles/:id", protect, async (req, res) => {
     const vehicle = await Vehicle.findOne({ id: req.params.id, owner: req.user._id });
     if (!vehicle) return res.status(404).json({ error: "Veículo não encontrado ou não autorizado." });
 
+    // Delete image from ImageKit if it exists
+    if (vehicle.imageId) {
+      const imageDeleted = await deleteImage(vehicle.imageId);
+      if (!imageDeleted) {
+        console.warn(`Falha ao deletar imagem ${vehicle.imageId} do ImageKit, mas o veículo será removido.`);
+        // Optionally, you could send a different status or message here
+      }
+    }
+
     await Vehicle.findByIdAndDelete(vehicle._id);
     res.status(200).json({ message: "Veículo deletado com sucesso." });
   } catch (err) {
+    console.error("Erro ao deletar veículo:", err); // Add specific logging
     res.status(500).json({ error: "Erro interno do servidor." });
   }
 });

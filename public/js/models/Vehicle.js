@@ -27,6 +27,7 @@ class Vehicle {
     recallPendente = false,
     ultimaRevisaoRecomendadaKm = null,
     dicaManutencao = "",
+    imageUrl = null,
   }) {
     // 1. Validação dos dados essenciais
     if (!make || !model || !year) {
@@ -65,6 +66,7 @@ class Vehicle {
     this.recallPendente = recallPendente;
     this.ultimaRevisaoRecomendadaKm = ultimaRevisaoRecomendadaKm;
     this.dicaManutencao = dicaManutencao;
+    this.imageUrl = imageUrl;
   }
 
   // --- MÉTODOS DE INSTÂNCIA (Nenhuma mudança necessária aqui) ---

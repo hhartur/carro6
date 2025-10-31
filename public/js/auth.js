@@ -163,6 +163,7 @@ function configureForLoggedInState(userInfo) {
 
     // Habilita todas as abas protegidas
     document.querySelectorAll('.nav-link[data-protected="true"]').forEach(link => {
+        if(link.classList.contains('immune')) return;
         link.removeAttribute('disabled');
         link.style.cursor = 'pointer';
         link.style.opacity = '1';
@@ -185,6 +186,7 @@ function configureForLoggedOutState() {
 
     // Desabilita as abas protegidas
     document.querySelectorAll('.nav-link[data-protected="true"]').forEach(link => {
+        if(link.classList.contains('immune')) return;
         link.setAttribute('disabled', 'true');
         link.style.cursor = 'not-allowed';
         link.style.opacity = '0.5';

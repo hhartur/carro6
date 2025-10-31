@@ -64,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       console.log("[Init 1.2] No user token found. Setting public view.");
       document.querySelectorAll(".dropdown a").forEach((link) => {
+        if(link.classList.contains('immune')) return;
         if (link.dataset.protected === "true") {
           link.setAttribute("disabled", "true");
           link.style.cursor = "not-allowed";
@@ -111,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!userInfo || !userInfo.token) return;
 
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${wsProtocol}//${window.location.host}`;
+    const wsUrl = `${wsProtocol}//localhost:3001`;
 
     ws = new WebSocket(wsUrl);
 
@@ -175,8 +176,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function toggleNotificationCenter() {
+  async function toggleNotificationCenter() {
     notificationCenter.classList.toggle("visible");
+    if (notificationCenter.classList.contains("visible")) {
+      // Mark all unread notifications as read when opening the center
+      const unreadNotifications = notifications.filter(n => !n.read);
+      if (unreadNotifications.length > 0) {
+        try {
+          await apiMarkAllNotificationsAsRead();
+          notifications.forEach(n => n.read = true); // Update local state
+          renderNotificationCenter();
+        } catch (error) {
+          console.error("Erro ao marcar todas as notificações como lidas:", error);
+          showNotification("Erro ao marcar notificações como lidas.", "error");
+        }
+      }
+    }
   }
 
   function renderNotificationCenter() {
@@ -197,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (notification.read) {
         li.classList.add("read");
       }
+      li.dataset.notificationId = notification._id; // Add notification ID to li
 
       let actions = "";
       if (notification.type === "FRIEND_REQUEST") {
@@ -210,16 +226,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
       li.innerHTML = `<p>${notification.message}</p>${actions}`;
 
+      // Mark as read when clicked (unless it's a friend request action button)
+      li.addEventListener('click', async (e) => {
+        if (!notification.read && !e.target.closest('.actions')) {
+          try {
+            await apiMarkNotificationAsRead(notification._id);
+            notification.read = true;
+            renderNotificationCenter(); // Re-render to update UI
+          } catch (error) {
+            console.error("Erro ao marcar notificação como lida:", error);
+            showNotification("Erro ao marcar notificação como lida.", "error");
+          }
+        }
+      });
+
       if (notification.type === "FRIEND_REQUEST") {
-        li.querySelector(".btn-success").addEventListener("click", (e) => {
+        li.querySelector(".btn-success").addEventListener("click", async (e) => { // Added async
           e.stopPropagation();
-          handleAcceptFriendRequest(notification.data.requestId);
+          await handleAcceptFriendRequest(notification.data.requestId); // Added await
           notification.read = true;
           renderNotificationCenter();
         });
-        li.querySelector(".btn-danger").addEventListener("click", (e) => {
+        li.querySelector(".btn-danger").addEventListener("click", async (e) => { // Added async
           e.stopPropagation();
-          handleDeclineFriendRequest(notification.data.requestId);
+          await handleDeclineFriendRequest(notification.data.requestId); // Added await
           notification.read = true;
           renderNotificationCenter();
         });
@@ -266,7 +296,26 @@ document.addEventListener("DOMContentLoaded", () => {
                   }
                   setActiveTab(link.dataset.tabTarget);
               }
-          });    vehicleTypeSelect?.addEventListener("change", (e) => {
+          });    
+          
+          const addVehicleImageInput = getElemById("vehicle-image");
+          const addVehicleImagePreview = getElemById("vehicle-image-preview");
+
+          addVehicleImageInput?.addEventListener("change", function() {
+            if (this.files && this.files[0]) {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                addVehicleImagePreview.src = e.target.result;
+                addVehicleImagePreview.style.display = "block";
+              };
+              reader.readAsDataURL(this.files[0]);
+            } else {
+              addVehicleImagePreview.src = "#";
+              addVehicleImagePreview.style.display = "none";
+            }
+          });
+
+          vehicleTypeSelect?.addEventListener("change", (e) => {
       const showTruck = e.target.value === "Truck";
       truckSpecificFields?.classList.toggle("visible", showTruck);
       getElemById("truck-max-load").required = showTruck;
@@ -303,6 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const make = addVehicleForm.querySelector("#vehicle-make")?.value.trim();
     const model = addVehicleForm.querySelector("#vehicle-model")?.value.trim();
     const year = addVehicleForm.querySelector("#vehicle-year")?.value;
+    const imageInput = addVehicleForm.querySelector("#vehicle-image");
     const maxLoad = addVehicleForm.querySelector("#truck-max-load")?.value;
 
     if (!type || !make || !model || !year) {
@@ -310,34 +360,32 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    let newVehicle;
+    const formData = new FormData();
+    formData.append('_type', type);
+
+    formData.append('make', make);
+    formData.append('model', model);
+    formData.append('year', year);
+    if (type === 'Truck') {
+      formData.append('maxLoad', maxLoad);
+    }
+    if (imageInput && imageInput.files[0]) {
+      formData.append('image', imageInput.files[0]);
+    }
+
     try {
-      // 1. Crie um objeto base com os dados comuns.
-      const vehicleData = { make, model, year };
-
-      // 2. Use o switch para criar a instância correta, passando o objeto.
-      switch (type) {
-        case "Car":
-          newVehicle = new Car(vehicleData);
-          break;
-        case "SportsCar":
-          newVehicle = new SportsCar(vehicleData);
-          break;
-        case "Truck":
-          // Adicione a propriedade específica do caminhão ao objeto de dados.
-          vehicleData.maxLoad = maxLoad;
-          newVehicle = new Truck(vehicleData);
-          break;
-        default:
-          throw new Error("Tipo de veículo inválido.");
-      }
-
-      const createdVehicleData = await garage.addVehicle(newVehicle);
+      const createdVehicleData = await garage.addVehicle(formData);
       if (createdVehicleData) {
         renderGarageList();
         addVehicleForm.reset();
         vehicleTypeSelect.value = "";
         truckSpecificFields?.classList.remove("visible");
+        // Clear image preview
+        const imagePreview = addVehicleForm.querySelector("#vehicle-image-preview");
+        if (imagePreview) {
+          imagePreview.src = "#";
+          imagePreview.style.display = "none";
+        }
 
         showNotification(
           `${type
@@ -1196,11 +1244,24 @@ document.addEventListener("DOMContentLoaded", () => {
         ? `<span class="privacy-icon">${vehicle.isPublic ? "🌍" : "🔒"}</span>`
         : "";
 
-    card.innerHTML = `<h4>${vehicle.make} ${vehicle.model}</h4><p>${
-      vehicle.year
-    } - ${vehicle._type
-      .replace(/([A-Z])/g, " $1")
-      .trim()}</p>${ownerInfo}<div class="card-specific-info"></div><div class="card-footer"><span class="status-icon"></span>${privacyIcon}</div>`;
+    const vehicleImageHtml = vehicle.imageUrl
+      ? `<img src="${vehicle.imageUrl}" alt="${vehicle.make} ${vehicle.model}" class="vehicle-card-image">`
+      : '';
+
+    card.innerHTML = `
+      <div class="card-header-content">
+        ${vehicleImageHtml}
+        <div>
+          <h4>${vehicle.make} ${vehicle.model}</h4>
+          <p>${vehicle.year} - ${vehicle._type.replace(/([A-Z])/g, " $1").trim()}</p>
+          ${ownerInfo}
+        </div>
+      </div>
+      <div class="card-specific-info"></div>
+      <div class="card-footer">
+        <span class="status-icon"></span>${privacyIcon}
+      </div>
+    `;
 
     updateVehicleCardStatus(card, vehicle);
     card.addEventListener("click", () =>
@@ -1319,21 +1380,38 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     setTxt(".details-title", `${vehicle.make} ${vehicle.model}`);
-    let infoHTML = `<strong>Ano:</strong> ${
-      vehicle.year
-    }<br><strong>Tipo:</strong> ${vehicle._type
-      .replace(/([A-Z])/g, " $1")
-      .trim()}`;
-    if (isPublic || isShared) {
-      infoHTML += `<br><strong>Dono:</strong> ${
-        vehicle.owner?.username || "Anônimo"
-      }`;
-    } else {
-      infoHTML += `<br><strong title="ID: ${
-        vehicle.id
-      }">ID:</strong> <span class="code">...${vehicle.id.slice(-6)}</span>`;
+    
+    const vehicleInfoBlock = wrapper.querySelector(".vehicle-info");
+    if (vehicleInfoBlock) {
+        vehicleInfoBlock.innerHTML = ''; // Clear existing content
+
+        if (vehicle.imageUrl) {
+            const imgElement = document.createElement('img');
+            imgElement.src = vehicle.imageUrl;
+            imgElement.alt = `Imagem de ${vehicle.make} ${vehicle.model}`;
+            imgElement.classList.add('vehicle-detail-image');
+            vehicleInfoBlock.appendChild(imgElement);
+        }
+
+        let infoHTML = `<strong>Ano:</strong> ${
+            vehicle.year
+        }<br><strong>Tipo:</strong> ${vehicle._type
+            .replace(/([A-Z])/g, " $1")
+            .trim()}`;
+        if (isPublic || isShared) {
+            infoHTML += `<br><strong>Dono:</strong> ${
+                vehicle.owner?.username || "Anônimo"
+            }`;
+        } else {
+            infoHTML += `<br><strong title="ID: ${
+                vehicle.id
+            }">ID:</strong> <span class="code">...${vehicle.id.slice(-6)}</span>`;
+        }
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.innerHTML = infoHTML;
+        vehicleInfoBlock.appendChild(infoDiv);
     }
-    setHTML(".vehicle-info", infoHTML);
 
     const isReadOnly = isPublic || isShared;
 
@@ -1534,7 +1612,32 @@ document.addEventListener("DOMContentLoaded", () => {
     addListener(".btn-cancel-edit-api-details", "click", () =>
       toggleApiDetailsEditMode(wrapper, false)
     );
-    addListener(".api-details-edit-form", "submit", handleSaveApiDetails);
+    addListener(".api-details-edit-form", "submit", handleSaveVehicleDetails);
+
+    const editVehicleImageInput = wrapper.querySelector("#edit-vehicle-image");
+    const editVehicleImagePreview = wrapper.querySelector("#edit-vehicle-image-preview");
+
+    if (editVehicleImageInput && editVehicleImagePreview) {
+        editVehicleImageInput.addEventListener("change", function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editVehicleImagePreview.src = e.target.result;
+                    editVehicleImagePreview.style.display = "block";
+                };
+                reader.readAsDataURL(this.files[0]);
+            } else {
+                editVehicleImagePreview.src = "#";
+                editVehicleImagePreview.style.display = "none";
+            }
+        });
+
+        // Display existing image if available
+        if (selectedVehicle.imageUrl) {
+            editVehicleImagePreview.src = selectedVehicle.imageUrl;
+            editVehicleImagePreview.style.display = "block";
+        }
+    }
   }
 
   async function handleShareVehicle() {
@@ -1671,31 +1774,58 @@ document.addEventListener("DOMContentLoaded", () => {
       vehicle.dicaManutencao || "";
   }
 
-  async function handleSaveApiDetails(event) {
+  async function handleSaveVehicleDetails(event) { // Renamed from handleSaveApiDetails
     event.preventDefault();
     if (!selectedVehicle) return;
 
     const wrapper = getCurrentDetailsWrapper();
-    const form = wrapper.querySelector(".api-details-edit-form");
+    const form = wrapper.querySelector(".api-details-edit-form"); // This form is for API details, not general vehicle details
     const button = form.querySelector(".btn-save-api-details");
 
-    const updatedData = {
-      valorFipeEstimado:
-        parseFloat(form.querySelector(".edit-fipe-value").value) || null,
-      ultimaRevisaoRecomendadaKm:
-        parseInt(form.querySelector(".edit-revision-km").value) || null,
-      recallPendente:
-        form.querySelector(".edit-recall-status").value === "true",
-      dicaManutencao: form.querySelector(".edit-maintenance-tip").value.trim(),
-    };
+    const editVehicleImageInput = wrapper.querySelector("#edit-vehicle-image");
+    const formData = new FormData();
+
+    // Append existing vehicle data (excluding sensitive fields like owner, maintenanceHistory)
+    // and new API details data
+    formData.append('make', selectedVehicle.make);
+    formData.append('model', selectedVehicle.model);
+    formData.append('year', selectedVehicle.year);
+    formData.append('_type', selectedVehicle._type);
+    formData.append('status', selectedVehicle.status);
+    formData.append('speed', selectedVehicle.speed);
+    if (selectedVehicle._type === 'SportsCar') {
+        formData.append('turboOn', selectedVehicle.turboOn);
+    }
+    if (selectedVehicle._type === 'Truck') {
+        formData.append('maxLoad', selectedVehicle.maxLoad);
+        formData.append('currentLoad', selectedVehicle.currentLoad);
+    }
+    formData.append('isPublic', selectedVehicle.isPublic);
+
+    // Append API details data
+    formData.append('valorFipeEstimado', form.querySelector(".edit-fipe-value").value || '');
+    formData.append('ultimaRevisaoRecomendadaKm', form.querySelector(".edit-revision-km").value || '');
+    formData.append('recallPendente', form.querySelector(".edit-recall-status").value);
+    formData.append('dicaManutencao', form.querySelector(".edit-maintenance-tip").value.trim());
+
+    // Append image if selected
+    if (editVehicleImageInput && editVehicleImageInput.files[0]) {
+      formData.append('image', editVehicleImageInput.files[0]);
+    } else if (selectedVehicle.imageUrl && !editVehicleImageInput.files[0]) {
+        // If there was an image but no new one is selected, keep the old one
+        formData.append('imageUrl', selectedVehicle.imageUrl);
+    } else if (!selectedVehicle.imageUrl && !editVehicleImageInput.files[0]) {
+        // If there was no image and no new one is selected, ensure imageUrl is empty
+        formData.append('imageUrl', '');
+    }
+
 
     setLoadingState(button, true, "Salvando...");
     try {
-      // Merge new data with existing vehicle data before sending
-      const vehiclePayload = { ...selectedVehicle.toJSON(), ...updatedData };
       const savedVehicle = await apiUpdateVehicle(
         selectedVehicle.id,
-        vehiclePayload
+        formData,
+        null // Let fetch set Content-Type for FormData
       );
 
       // Update local state
@@ -1707,9 +1837,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       populateApiDetailsView(wrapper, selectedVehicle);
       toggleApiDetailsEditMode(wrapper, false);
-      showNotification("Dados adicionais salvos com sucesso!", "success");
+      showNotification("Dados do veículo salvos com sucesso!", "success");
     } catch (error) {
-      showNotification(`Erro ao salvar dados: ${error.message}`, "error");
+      showNotification(`Erro ao salvar dados do veículo: ${error.message}`, "error");
     } finally {
       setLoadingState(button, false, "Salvar");
     }

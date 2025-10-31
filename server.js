@@ -39,11 +39,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Ocorreu um erro inesperado no servidor.' });
 });
 
-const { initWebSocket } = require("./lib/websocket");
+
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
 });
-
-initWebSocket(server);

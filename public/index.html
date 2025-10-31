@@ -59,16 +59,16 @@
             <nav class="main-nav" aria-label="Navegação principal">
                 <ul>
                     <li><a href="#dashboard" class="nav-link" data-tab-target="dashboard" data-protected="true">📊 Dashboard</a></li>
-                    <li class="dropdown">
-                        <a href="#" class="nav-link" data-protected="true">🚗 Garagem</a>
+                    <li class="dropdown immune">
+                        <a href="#" class="nav-link immune" data-protected="true">🚗 Garagem</a>
                         <ul class="dropdown-menu">
                             <li><a href="#garage" class="nav-link" data-tab-target="garage" data-protected="true">Minha Garagem</a></li>
                             <li><a href="#public-garage" class="nav-link" data-tab-target="public-garage">Garagem Pública</a></li>
                             <li><a href="#shared-vehicles" class="nav-link" data-tab-target="shared-vehicles" data-protected="true">Veículos Compartilhados</a></li>
                         </ul>
                     </li>
-                    <li class="dropdown">
-                        <a href="#" class="nav-link" data-protected="true">🧑‍🤝‍🧑 Comunidade</a>
+                    <li class="dropdown immune">
+                        <a href="#" class="nav-link immune" data-protected="true">🧑‍🤝‍🧑 Comunidade</a>
                         <ul class="dropdown-menu">
                             <li><a href="#friends" class="nav-link" data-tab-target="friends" data-protected="true">Amigos</a></li>
                         </ul>
@@ -124,6 +124,11 @@
                              <div class="form-group"> <label for="vehicle-type">Tipo:</label> <select id="vehicle-type" required> <option value="" disabled selected>Selecione...</option> <option value="Car">Carro</option> <option value="SportsCar">Carro Esportivo</option> <option value="Truck">Caminhão</option> </select> </div>
                              <div class="form-row"> <div class="form-group"> <label for="vehicle-make">Marca:</label> <input type="text" id="vehicle-make" required placeholder="Ex: Toyota"> </div> <div class="form-group"> <label for="vehicle-model">Modelo:</label> <input type="text" id="vehicle-model" required placeholder="Ex: Corolla"> </div> </div>
                              <div class="form-group"> <label for="vehicle-year">Ano:</label> <input type="number" id="vehicle-year" required min="1900" max="2099" placeholder="Ex: 2024"> </div>
+                             <div class="form-group">
+                                 <label for="vehicle-image">Imagem do Veículo:</label>
+                                 <input type="file" id="vehicle-image" accept="image/*">
+                                 <img id="vehicle-image-preview" src="#" alt="Pré-visualização da Imagem" style="display: none; max-width: 100px; max-height: 100px; margin-top: 10px;">
+                             </div>
                              <div id="truck-specific-fields" class="specific-fields"> <hr class="field-separator"> <div class="form-group"> <label for="truck-max-load">Carga Máxima (kg):</label> <input type="number" id="truck-max-load" min="1" placeholder="Ex: 1000"> </div> <hr class="field-separator"> </div>
                              <button type="submit" class="btn btn-primary btn-submit">Adicionar à Garagem</button>
                         </form>
@@ -283,7 +288,12 @@
             <button class="close-button" title="Fechar Detalhes" aria-label="Fechar Detalhes">×</button>
             <h2 class="details-title">Detalhes do Veículo</h2>
             <div class="details-content">
-                <div class="info-block vehicle-info"></div>
+                <div class="info-block vehicle-info">
+                    <div class="form-group">
+                        <label for="edit-vehicle-image">Imagem do Veículo:</label>
+                        <input type="file" id="edit-vehicle-image" accept="image/*">
+                        <img id="edit-vehicle-image-preview" src="#" alt="Pré-visualização da Imagem" style="display: none; max-width: 100px; max-height: 100px; margin-top: 10px;">
+                    </div></div>
                 <div class="status-indicators vehicle-status-indicators"></div>
 
                 <div class="engine-visualizer" style="display: none;">
@@ -351,7 +361,7 @@
                  
                  <section class="trip-planner-section">
                     <h3><span class="section-icon">✈️</span> Planejador de Viagem</h3>
-                    <form class="trip-form" autocomplete="off">
+                    <form class="trip-form form-section" autocomplete="off">
                         <div class="form-group"> <label for="trip-origin">Local de Partida:</label> <input type="text" class="trip-origin-input" placeholder="Ex: São Paulo" required> </div>
                         <div class="form-group"> <label for="trip-destination">Local de Chegada:</label> <input type="text" class="trip-destination-input" placeholder="Ex: Rio de Janeiro" required> </div>
                         <button type="submit" class="btn btn-calculate-trip"> <span class="btn-text">Calcular Rota e Clima</span> <span class="spinner" style="display: none;"></span> </button>

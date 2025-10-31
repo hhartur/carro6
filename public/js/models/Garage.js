@@ -40,13 +40,23 @@ class Garage {
       }
   }
 
-  async addVehicle(vehicleObject) {
-    if (!(vehicleObject instanceof Vehicle)) {
-      console.error("[Garage] Attempted to add an invalid object.", vehicleObject);
-      return null;
+  async addVehicle(vehicleData) { // vehicleData can be a Vehicle object or FormData
+    let payload;
+    let contentType;
+
+    if (vehicleData instanceof FormData) {
+      payload = vehicleData;
+      // fetch will automatically set Content-Type: multipart/form-data with boundary
+      contentType = null; 
+    } else if (vehicleData instanceof Vehicle) {
+      payload = JSON.stringify(vehicleData.toJSON());
+      contentType = 'application/json';
+    } else {
+      throw new Error("Invalid vehicle data provided.");
     }
+
     try {
-      const newVehicleData = await apiAddVehicle(vehicleObject.toJSON());
+      const newVehicleData = await apiAddVehicle(payload, contentType); // apiAddVehicle needs to be updated
       const reconstructed = reconstructVehicle(newVehicleData);
       if (reconstructed) {
         this.vehicles.push(reconstructed);
@@ -54,7 +64,7 @@ class Garage {
       console.log(`[Garage] API confirmed addition of ${newVehicleData.model}.`);
       return newVehicleData;
     } catch (error) {
-      console.error(`[Garage] API failed to add vehicle ${vehicleObject.model}.`, error);
+      console.error(`[Garage] API failed to add vehicle.`, error);
       throw error;
     }
   }
