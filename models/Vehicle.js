@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require('uuid'); // Import uuid
 
 const MaintenanceSchema = new mongoose.Schema(
   {
@@ -13,7 +14,7 @@ const MaintenanceSchema = new mongoose.Schema(
 
 const VehicleSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true, unique: true, index: true },
+    id: { type: String, default: uuidv4, unique: true, index: true }, // Use default: uuidv4
     make: { type: String, required: true, trim: true },
     model: { type: String, required: true, trim: true },
     year: { type: Number, required: true },
@@ -56,6 +57,8 @@ const VehicleSchema = new mongoose.Schema(
       ref: "User",
     },
     isPublic: { type: Boolean, default: false },
+    imageUrl: { type: String },
+    imageId: { type: String },
   },
   { timestamps: true }
 );

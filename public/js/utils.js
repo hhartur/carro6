@@ -45,12 +45,20 @@ function showConfirmation(message, onConfirm, onCancel) {
     backdrop.appendChild(dialog);
     document.body.appendChild(backdrop);
     
+    let confirmed = false; // Flag to ensure onConfirm is called only once
+
     const closeDialog = () => {
         backdrop.classList.remove('visible');
         backdrop.addEventListener('transitionend', () => backdrop.remove(), { once: true });
     };
 
-    backdrop.querySelector('#confirm-yes').onclick = () => { closeDialog(); if (onConfirm) onConfirm(); };
+    backdrop.querySelector('#confirm-yes').onclick = () => {
+        if (!confirmed) {
+            confirmed = true;
+            closeDialog();
+            if (onConfirm) onConfirm();
+        }
+    };
     backdrop.querySelector('#confirm-no').onclick = () => { closeDialog(); if (onCancel) onCancel(); };
     backdrop.onclick = (e) => { if (e.target === backdrop) { closeDialog(); if (onCancel) onCancel(); }};
     document.addEventListener('keydown', function handleEsc(e) { if (e.key === 'Escape') { closeDialog(); if (onCancel) onCancel(); document.removeEventListener('keydown', handleEsc); }}, { once: true });
@@ -138,20 +146,36 @@ async function apiGetPublicVehicles() {
     return handleApiResponse(response);
 }
 
-async function apiAddVehicle(vehicleData) {
+async function apiAddVehicle(payload, contentType = 'application/json') {
+    const headers = getAuthHeaders();
+    if (contentType) {
+        headers['Content-Type'] = contentType;
+    } else {
+        // If contentType is null, it means FormData is being sent,
+        // and fetch will automatically set the 'Content-Type' header with the correct boundary.
+        delete headers['Content-Type'];
+    }
+
     const response = await fetch(`${API_BASE_URL}/vehicles`, {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(vehicleData)
+        headers: headers,
+        body: payload
     });
     return handleApiResponse(response);
 }
 
-async function apiUpdateVehicle(vehicleId, vehicleData) {
+async function apiUpdateVehicle(vehicleId, payload, contentType = 'application/json') {
+    const headers = getAuthHeaders();
+    if (contentType) {
+        headers['Content-Type'] = contentType;
+    } else {
+        delete headers['Content-Type'];
+    }
+
     const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
         method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(vehicleData)
+        headers: headers,
+        body: payload
     });
     return handleApiResponse(response);
 }
@@ -203,6 +227,23 @@ async function apiUpdateMaintenance(vehicleId, maintId, maintenanceData) {
 async function apiDeleteMaintenance(vehicleId, maintId) {
     const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}/maintenance/${maintId}`, {
         method: 'DELETE',
+        headers: getAuthHeaders()
+    });
+    return handleApiResponse(response);
+}
+
+// --- Notification API ---
+async function apiMarkNotificationAsRead(notificationId) {
+    const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
+        method: 'PUT',
+        headers: getAuthHeaders()
+    });
+    return handleApiResponse(response);
+}
+
+async function apiMarkAllNotificationsAsRead() {
+    const response = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+        method: 'PUT',
         headers: getAuthHeaders()
     });
     return handleApiResponse(response);

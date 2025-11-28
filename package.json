@@ -4,8 +4,9 @@
   "description": "Backend for weather API for Smart Garage Nexus",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server.js & node websocket-server.js",
+    "dev": "nodemon server.js & nodemon websocket-server.js",
+    "start:ws": "node websocket-server.js"
   },
   "dependencies": {
     "axios": "^1.9.0",
@@ -13,11 +14,15 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.21.2",
+    "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.2",
-    "nodemailer": "^7.0.6",
-    "vercel": "^28.18.5"
+    "multer": "^2.0.2",
+    "socket.io": "^4.8.1",
+    "uuid": "^9.0.1",
+    "vercel": "^28.18.5",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.0"
