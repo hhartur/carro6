@@ -59,15 +59,11 @@ app.use((err, req, res, next) => {
 });
 
 // -----------------------------
-// 🔥 Inicialização do Servidor + Socket.IO
+// 🔥 Inicialização do Servidor
 // -----------------------------
-const { initSocket } = require("./lib/socket"); // Arquivo de configuração do Socket.IO
 
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
-
-// Inicializa o Socket.IO (compatível com Vercel)
-initSocket(server);
 
 server.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);

@@ -1,6 +1,3 @@
-// Adicione a biblioteca cliente do Socket.IO ao seu HTML antes deste script.
-// Ex: <script src="/socket.io/socket.io.js"></script> ou de um CDN.
-
 document.addEventListener("DOMContentLoaded", () => {
   console.log(
     "[Init 0.1] DOMContentLoaded. Initializing Smart Garage Nexus v11.0 (Profile & Maint-CRUD)..."
@@ -14,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let isPublicGarageView = false;
   let notifications = [];
   let currentChatFriend = null;
-  let socket = null; // Alterado de ws para socket
 
   const OPENWEATHERMAP_ICON_URL_PREFIX = "https://openweathermap.org/img/wn/";
 
@@ -107,110 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log(
       "[Init COMPLETE] === Smart Garage Nexus initialization finished ==="
     );
-    initSocketIO(); // Alterado de initWebSocket para initSocketIO
   }
 
-  // --- INÍCIO DA SEÇÃO REFATORADA PARA SOCKET.IO ---
 
-  function initSocketIO() {
-    const userInfo = getUserInfo();
-    if (!userInfo || !userInfo.token) return;
-
-    // A URL base para o servidor Socket.IO.
-    // O cliente Socket.IO gerencia os protocolos (http/https) automaticamente.
-    const socketUrl = "https://carro6222.vercel.app";
-
-    // Conecta-se ao servidor Socket.IO
-    const socket = io(socketUrl, {
-  transports: ["polling"], // garante compatibilidade com Vercel
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-});
-
-
-
-    // Evento disparado ao conectar
-    socket.on("connect", () => {
-      console.log("🧩 Conectado ao servidor Socket.IO. Autenticando...");
-      // Emite o evento de autenticação com o token, conforme esperado pelo backend
-      socket.emit("authenticate", userInfo.token);
-    });
-
-    // Evento para confirmar que a autenticação foi bem-sucedida
-    socket.on("authenticated", () => {
-      console.log("✅ Cliente autenticado com sucesso via Socket.IO.");
-    });
-
-    // Evento para lidar com falhas de autenticação
-    socket.on("unauthorized", () => {
-      console.error("❌ Falha na autenticação do Socket.IO. Desconectando.");
-      showNotification(
-        "Sessão inválida. Por favor, faça login novamente.",
-        "error"
-      );
-      // Aqui você poderia adicionar uma lógica para deslogar o usuário
-    });
-
-    // Listener para novas mensagens de chat
-    socket.on("chat_message", (message) => {
-      // O backend envia o objeto da mensagem diretamente
-      const senderId = message.sender; // O backend envia o ID do remetente
-      let senderUsername = "um amigo";
-
-      // Se a janela de chat com este amigo estiver aberta, podemos usar o nome dele
-      if (currentChatFriend && senderId === currentChatFriend._id) {
-        senderUsername = currentChatFriend.username;
-        renderMessages(null, message); // Renderiza a mensagem na janela aberta
-      }
-
-      showNotification(`Nova mensagem de ${senderUsername}`, "info");
-    });
-
-    // Listener para outras notificações genéricas
-    socket.on("notification", (notification) => {
-      handleIncomingNotification(notification);
-    });
-
-    // Evento para lidar com a desconexão
-    socket.on("disconnect", () => {
-      console.log("❌ Desconectado do servidor Socket.IO. Tentando reconectar...");
-      // A reconexão é gerenciada automaticamente pelo Socket.IO
-    });
-
-    // Evento para lidar com erros de conexão
-    socket.on("connect_error", (error) => {
-      console.error("Erro de conexão com o Socket.IO:", error);
-    });
-  }
-
-  function handleSendMessage(event) {
-    if (event.key === "Enter" && chatInput.value.trim() !== "" && socket) {
-      const messageContent = chatInput.value.trim();
-
-      // Estrutura de dados que o backend `socket.js` espera
-      const messagePayload = {
-        recipientId: currentChatFriend._id,
-        content: messageContent,
-      };
-
-      // Emite o evento 'chat_message' para o servidor
-      socket.emit("chat_message", messagePayload);
-
-      // Otimização de UI: renderiza a mensagem enviada imediatamente
-      // sem esperar o retorno do servidor.
-      const localMessage = {
-        content: messageContent,
-        sender: getUserInfo()._id,
-        recipient: currentChatFriend._id,
-      };
-      renderMessages(null, localMessage);
-
-      chatInput.value = "";
-    }
-  }
-
-  // --- FIM DA SEÇÃO REFATORADA PARA SOCKET.IO ---
 
   function handleIncomingNotification(notification) {
     notifications.unshift(notification); // Adiciona no início
@@ -418,7 +313,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     cancelShareButton?.addEventListener("click", closeShareModal);
     shareFriendSearch?.addEventListener("input", handleFriendSearch);
-    chatInput?.addEventListener("keydown", handleSendMessage);
   }
 
   async function handleAddVehicle(event) {
@@ -741,6 +635,10 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
+  // Debounce vehicle updates to prevent excessive API calls
+  let vehicleUpdateTimeout = null;
+  const VEHICLE_UPDATE_DEBOUNCE_MS = 500; // Wait 500ms after last action before syncing
+
   async function handleVehicleAction(action, args = []) {
     if (!selectedVehicle || isPublicGarageView) return;
 
@@ -757,36 +655,58 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedVehicle
     );
 
-    try {
-      const updatedData = await apiUpdateVehicle(
-        selectedVehicle.id,
-        selectedVehicle.toJSON()
-      );
-      const index = garage.vehicles.findIndex((v) => v.id === updatedData.id);
-      if (index > -1) garage.vehicles[index] = reconstructVehicle(updatedData);
-      console.log(`[API Sync] Action '${action}' successfully synced.`);
-    } catch (error) {
-      console.error(
-        `[API Sync] Failed to sync action '${action}'. Reverting UI.`,
-        error
-      );
-      showNotification(
-        `Erro de sincronização: ${error.message}. Restaurando estado.`,
-        "error"
-      );
+    // Clear existing timeout and set new one for debounced update
+    clearTimeout(vehicleUpdateTimeout);
+    vehicleUpdateTimeout = setTimeout(async () => {
+      try {
+        // Prepare FormData for the update (same format as handleSaveVehicleDetails)
+        const formData = new FormData();
+        formData.append("make", selectedVehicle.make);
+        formData.append("model", selectedVehicle.model);
+        formData.append("year", selectedVehicle.year);
+        formData.append("_type", selectedVehicle._type);
+        formData.append("status", selectedVehicle.status);
+        formData.append("speed", selectedVehicle.speed);
+        if (selectedVehicle._type === "SportsCar") {
+          formData.append("turboOn", selectedVehicle.turboOn);
+        }
+        if (selectedVehicle._type === "Truck") {
+          formData.append("maxLoad", selectedVehicle.maxLoad);
+          formData.append("currentLoad", selectedVehicle.currentLoad);
+        }
+        formData.append("isPublic", selectedVehicle.isPublic);
 
-      selectedVehicle = reconstructVehicle(originalState);
-      const index = garage.vehicles.findIndex((v) => v.id === originalState.id);
-      if (index > -1) garage.vehicles[index] = selectedVehicle;
+        const updatedData = await apiUpdateVehicle(
+          selectedVehicle.id,
+          formData,
+          null // Let fetch set Content-Type for FormData
+        );
+        const index = garage.vehicles.findIndex((v) => v.id === updatedData.id);
+        if (index > -1) garage.vehicles[index] = reconstructVehicle(updatedData);
+        console.log(`[API Sync] Action '${action}' successfully synced.`);
+      } catch (error) {
+        console.error(
+          `[API Sync] Failed to sync action '${action}'. Reverting UI.`,
+          error
+        );
+        showNotification(
+          `Erro de sincronização: ${error.message}. Restaurando estado.`,
+          "error"
+        );
 
-      if (wrapper) populateDetailsPanelContent(wrapper, selectedVehicle, false);
-      updateVehicleCardStatus(
-        garageDisplay.querySelector(
-          `.vehicle-card[data-id="${selectedVehicle.id}"]`
-        ),
-        selectedVehicle
-      );
-    }
+        selectedVehicle = reconstructVehicle(originalState);
+        const index = garage.vehicles.findIndex((v) => v.id === originalState.id);
+        if (index > -1) garage.vehicles[index] = selectedVehicle;
+
+        if (wrapper) populateDetailsPanelContent(wrapper, selectedVehicle, false);
+        updateVehicleCardStatus(
+          garageDisplay.querySelector(
+            `.vehicle-card[data-id="${selectedVehicle.id}"]`
+          ),
+          selectedVehicle
+        );
+      }
+    }, VEHICLE_UPDATE_DEBOUNCE_MS);
   }
 
   async function handleScheduleMaintenance(event) {

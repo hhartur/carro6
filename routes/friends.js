@@ -4,7 +4,6 @@ const Friendship = require("../models/Friendship");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 const { protect } = require("../middleware/auth");
-const {sendNotification} = require("../lib/socket");
 
 // Rota para enviar um pedido de amizade
 router.post("/friends/request", protect, async (req, res) => {
@@ -48,19 +47,6 @@ router.post("/friends/request", protect, async (req, res) => {
       }
     });
     await notification.save();
-
-    // Notificar o destinatário via WebSocket
-    sendNotification(recipientId.toString(), {
-        type: 'FRIEND_REQUEST',
-        message: `Você recebeu um pedido de amizade de ${req.user.username}.`,
-        data: {
-            requestId: friendship._id,
-            requester: {
-                _id: req.user._id,
-                username: req.user.username
-            }
-        }
-    });
 
     res.status(201).json(friendship);
   } catch (err) {

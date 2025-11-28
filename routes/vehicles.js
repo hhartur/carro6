@@ -5,7 +5,6 @@ const SharedVehicle = require("../models/SharedVehicle");
 const Friendship = require("../models/Friendship");
 const Notification = require("../models/Notification");
 const { protect } = require('../middleware/auth');
-const { sendNotification } = require("../lib/socket");
 const multer = require('multer'); // Import multer
 const imagekitModule = require('../lib/imagekit'); // Import the entire module
 const uploadImage = imagekitModule.uploadImage;
@@ -258,19 +257,6 @@ router.post("/vehicles/:id/share", protect, async (req, res) => {
           }
         });
         await notification.save();
-
-        sendNotification(friendId.toString(), {
-            type: 'VEHICLE_SHARED',
-            message: `${req.user.username} compartilhou um veículo com você.`,
-            data: {
-                vehicleId: vehicle.id,
-                vehicleName: `${vehicle.make} ${vehicle.model}`,
-                owner: {
-                    _id: req.user._id,
-                    username: req.user.username
-                }
-            }
-        });
 
         res.status(201).json(newShare);
 
